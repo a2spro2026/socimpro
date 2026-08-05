@@ -52,7 +52,7 @@ export default function Header({ onMenuClick }) {
                         <div className="flex items-center gap-2.5 ml-1 pl-3 border-l border-slate-200 dark:border-slate-700">
                             <div className="hidden sm:block text-right leading-tight">
                                 <p className="text-sm font-bold text-slate-800 dark:text-white whitespace-nowrap">
-                                    {user.name || 'MR AHMED'}
+                                    {user.name || 'Mr SAIID MOHAMED'}
                                 </p>
                                 <p className="text-[11px] font-semibold text-brand-orange whitespace-nowrap">
                                     {user.title || 'Directeur Général'}

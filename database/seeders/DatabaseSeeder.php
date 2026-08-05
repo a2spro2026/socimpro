@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@socimpro.com'],
             [
-                'name' => 'MR AHMED',
+                'name' => 'Mr SAIID MOHAMED',
                 'password' => Hash::make('password'),
                 'role_id' => $adminRole->id,
                 'phone' => '0600000000',
