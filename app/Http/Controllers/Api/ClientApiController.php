@@ -107,6 +107,8 @@ class ClientApiController extends Controller
             'chantier_address' => $client->chantier_address,
             'budget' => round((float) $client->budget, 2),
             'initial_balance' => number_format((float) $client->budget, 2, '.', ''),
+            'initial_balance_paid' => number_format((float) ($client->initial_balance_paid ?? 0), 2, '.', ''),
+            'solde' => number_format($client->remainingInitialBalance(), 2, '.', ''),
             'work_delay' => $client->work_delay,
             'echeance' => $client->work_delay,
             'status' => $client->status,

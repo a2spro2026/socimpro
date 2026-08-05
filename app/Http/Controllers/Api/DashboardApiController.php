@@ -56,7 +56,9 @@ class DashboardApiController extends Controller
         $tresorerie = (float) Payment::where('type', 'client')->sum('amount')
             - (float) Payment::whereIn('type', ['fournisseur', 'personnel'])->sum('amount');
 
-        $soldeFournisseur = (float) Supplier::sum('initial_balance');
+        $soldeFournisseur = (float) (Supplier::query()
+            ->selectRaw('COALESCE(SUM(GREATEST(initial_balance - COALESCE(initial_balance_paid, 0), 0)), 0) as total')
+            ->value('total') ?? 0);
 
         $chantiersActifs = Chantier::where('status', 'en_cours')->where('archived', false)->count();
         $chantiersTermines = Chantier::where('status', 'termine')->count();

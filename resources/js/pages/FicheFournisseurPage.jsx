@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Save, RotateCcw, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw, Wallet } from 'lucide-react';
 import api from '../lib/api';
+import { formatMontant } from '../lib/formatMontant';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
 
 const REGLEMENT_OPTIONS = [
@@ -41,19 +42,24 @@ const readOnlyClass =
     'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 px-2.5 py-1.5 text-xs text-center cursor-not-allowed';
 
 function formatSolde(value) {
-    const n = Number(String(value ?? '').replace(',', '.')) || 0;
-    return n.toFixed(2);
+    return formatMontant(value);
 }
 
 function parseSoldeInput(value) {
     if (value === '' || value == null) return '';
     const n = Number(String(value).replace(',', '.'));
-    return Number.isFinite(n) ? n.toFixed(2) : '';
+    return Number.isFinite(n) ? String(Math.round(n)) : '';
 }
 
 function hasSoldeInitial(value) {
     const n = Number(String(value ?? '').replace(',', '.'));
     return Number.isFinite(n) && n !== 0;
+}
+
+/** Solde restant après règlements (pas le montant d'origine). */
+function remainingSolde(row) {
+    if (row?.solde != null && row.solde !== '') return row.solde;
+    return row?.initial_balance ?? 0;
 }
 
 function buildFicheHtml(row) {
@@ -79,7 +85,7 @@ th{background:#f8fafc;width:180px;font-weight:700}
 <tr><th>Ville</th><td>${row.city || '—'}</td></tr>
 <tr><th>Règlement</th><td>${row.reglement || '—'}</td></tr>
 <tr><th>Échéance</th><td>${row.echeance || row.payment_terms || '—'}</td></tr>
-<tr><th>Solde Initial</th><td><strong>${formatSolde(row.initial_balance ?? row.solde)}</strong></td></tr>
+<tr><th>Solde Initial</th><td><strong>${formatSolde(remainingSolde(row))}</strong></td></tr>
 <tr><th>Date création</th><td>${row.created_at || '—'}</td></tr>
 </table>
 <p class="footer">© STE SOCIMPRO — A2SPRO</p>
@@ -147,7 +153,7 @@ function ViewModal({ row, onClose }) {
                         ['Ville', row.city],
                         ['Règlement', row.reglement],
                         ['Échéance', row.echeance || row.payment_terms],
-                        ['Solde Initial', formatSolde(row.initial_balance ?? row.solde), hasSoldeInitial(row.initial_balance ?? row.solde)],
+                        ['Solde Initial', formatSolde(remainingSolde(row)), hasSoldeInitial(remainingSolde(row))],
                         ['Date', row.created_at],
                     ].map(([label, value, isRed]) => (
                         <div key={label} className="flex justify-between gap-4 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
@@ -195,7 +201,7 @@ export default function FicheFournisseurPage() {
     }, [load]);
 
     const totalSoldes = useMemo(
-        () => rows.reduce((sum, r) => sum + (Number(r.initial_balance ?? r.solde) || 0), 0),
+        () => rows.reduce((sum, r) => sum + (Number(remainingSolde(r)) || 0), 0),
         [rows]
     );
 
@@ -330,7 +336,7 @@ export default function FicheFournisseurPage() {
                             value={form.initial_balance}
                             onChange={(e) => set('initial_balance', e.target.value.replace(/[^\d.,\-]/g, ''))}
                             onBlur={() => set('initial_balance', parseSoldeInput(form.initial_balance))}
-                            placeholder="0.00"
+                            placeholder="0"
                             className={`${inputClass} ${hasSoldeInitial(form.initial_balance) ? 'border-red-400 text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/30 focus:ring-red-400/40 focus:border-red-500' : ''}`}
                         />
                     </Field>
@@ -415,8 +421,8 @@ export default function FicheFournisseurPage() {
                                                 {row.echeance || row.payment_terms || '—'}
                                             </span>
                                         </td>
-                                        <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(row.initial_balance ?? row.solde) ? 'text-red-600 dark:text-red-400' : 'text-brand-navy dark:text-orange-400'}`}>
-                                            {formatSolde(row.initial_balance ?? row.solde)}
+                                        <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(remainingSolde(row)) ? 'text-red-600 dark:text-red-400' : 'text-brand-navy dark:text-orange-400'}`}>
+                                            {formatSolde(remainingSolde(row))}
                                         </td>
                                         <td className="px-4 py-2.5">
                                             <div className="flex items-center justify-center gap-0.5">
