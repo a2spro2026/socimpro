@@ -58,7 +58,7 @@ export const navigation = [
         children: [
             { to: '/fournisseurs/fiches', label: 'Fiche Fournisseur', icon: Contact },
             { to: '/fournisseurs/bons-achats', label: 'Bon Achats', icon: ClipboardList },
-            { to: '/chantiers/bons-commande', label: 'Bon de Commande', icon: ClipboardCheck },
+            { to: '/fournisseurs/bons-commande', label: 'Bon de Commande', icon: ClipboardCheck },
             { to: '/fournisseurs/reglements-achats', label: 'Règlement Achats', icon: Banknote },
             { to: '/fournisseurs/balance', label: 'Balance', icon: Scale },
             { to: '/fournisseurs/releve-compte', label: 'Relevé Compte', icon: ScrollText },
@@ -84,12 +84,12 @@ export const navigation = [
         perm: 'factures_clients.view',
         children: [
             { to: '/facturation/factures-achats', label: 'Facture Achats', icon: FileInput },
-            { to: '/facturation/depot-a', label: 'Depot A', icon: Warehouse },
-            { to: '/facturation/depot-b', label: 'Depot B', icon: Warehouse },
+            { to: '/facturation/depot-a', label: 'Depot A', icon: Warehouse, disabled: true },
+            { to: '/facturation/depot-b', label: 'Depot B', icon: Warehouse, disabled: true },
             { to: '/facturation/reglement', label: 'Règlement', icon: CreditCard },
-            { to: '/facturation/factures-ventes', label: 'Facture Ventes', icon: Receipt },
+            { to: '/facturation/factures-ventes', label: 'Facture des Ventes', icon: Receipt },
             { to: '/facturation/reglements', label: 'Règlements', icon: Wallet },
-            { to: '/facturation/balance', label: 'Balance', icon: Scale },
+            { to: '/facturation/balance', label: 'Balances Factures Clients', icon: Scale },
         ],
     },
     {

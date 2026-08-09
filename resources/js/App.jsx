@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ChantiersPage from './pages/ChantiersPage';
 import BonAchatsPage from './pages/BonAchatsPage';
+import BonCommandePage from './pages/BonCommandePage';
 import BonVentesPage from './pages/BonVentesPage';
 import ReglementFournisseurPage from './pages/ReglementFournisseurPage';
 import ReglementClientPage from './pages/ReglementClientPage';
@@ -21,6 +22,7 @@ import DevisFormPage from './pages/devis/DevisFormPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ChargesPage from './pages/ChargesPage';
 import FactureAchatsPage from './pages/FactureAchatsPage';
+import FactureVentesPage from './pages/FactureVentesPage';
 import SupplierBalancePage from './pages/SupplierBalancePage';
 
 function ProtectedRoute({ children }) {
@@ -52,6 +54,7 @@ function AppRoutes() {
                 {/* Fournisseur */}
                 <Route path="fournisseurs/fiches" element={<FicheFournisseurPage />} />
                 <Route path="fournisseurs/bons-achats" element={<BonAchatsPage />} />
+                <Route path="fournisseurs/bons-commande" element={<BonCommandePage />} />
                 <Route path="fournisseurs/balance" element={<SupplierBalancePage />} />
                 <Route path="fournisseurs/releve-compte" element={<ModulePage />} />
 
@@ -64,17 +67,17 @@ function AppRoutes() {
                 <Route path="clients/bons-vente" element={<BonExecutionListPage />} />
                 <Route path="clients/reglements-vente" element={<ReglementClientPage />} />
                 <Route path="clients/reglements" element={<ReglementClientPage />} />
-                <Route path="clients/factures-ventes" element={<ModulePage />} />
+                <Route path="clients/factures-ventes" element={<Navigate to="/facturation/factures-ventes" replace />} />
                 <Route path="clients/reglements-factures" element={<ModulePage />} />
                 <Route path="clients/balance" element={<ClientBalancePage />} />
                 <Route path="clients/releve-compte" element={<ModulePage />} />
 
                 {/* Facturation */}
                 <Route path="facturation/factures-achats" element={<FactureAchatsPage />} />
-                <Route path="facturation/depot-a" element={<FactureAchatsPage depotFilter="depot_a" pageTitle="Depot A" pageSubtitle="Factures achats — destination Depot A" />} />
-                <Route path="facturation/depot-b" element={<FactureAchatsPage depotFilter="depot_b" pageTitle="Depot B" pageSubtitle="Factures achats — destination Depot B" />} />
+                <Route path="facturation/depot-a" element={<Navigate to="/facturation/factures-achats" replace />} />
+                <Route path="facturation/depot-b" element={<Navigate to="/facturation/factures-achats" replace />} />
                 <Route path="facturation/reglement" element={<ReglementFournisseurPage />} />
-                <Route path="facturation/factures-ventes" element={<ModulePage />} />
+                <Route path="facturation/factures-ventes" element={<FactureVentesPage />} />
                 <Route path="facturation/reglements" element={<ReglementClientPage />} />
                 <Route path="facturation/balance" element={<ModulePage />} />
                 <Route path="fournisseurs/reglements-achats" element={<ReglementFournisseurPage />} />
@@ -90,7 +93,7 @@ function AppRoutes() {
 
                 {/* Chantiers */}
                 <Route path="chantiers/carte" element={<ChantiersPage />} />
-                <Route path="chantiers/bons-commande" element={<ModulePage />} />
+                <Route path="chantiers/bons-commande" element={<Navigate to="/fournisseurs/bons-commande" replace />} />
                 <Route path="chantiers/suivi-depenses" element={<ModulePage />} />
 
                 {/* Personnel */}

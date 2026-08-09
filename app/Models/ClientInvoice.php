@@ -12,6 +12,8 @@ class ClientInvoice extends Model
     protected $fillable = [
         'client_id', 'chantier_id', 'reference', 'invoice_date', 'due_date',
         'total_ht', 'tva', 'total_ttc', 'amount_paid', 'status', 'notes',
+        'city', 'address', 'reglement', 'echeance', 'chauffeur', 'matricule',
+        'quantity', 'unit_price', 'subtotal', 'designation', 'article_ref', 'unit', 'user_id',
     ];
 
     protected function casts(): array
@@ -23,6 +25,9 @@ class ClientInvoice extends Model
             'tva' => 'decimal:2',
             'total_ttc' => 'decimal:2',
             'amount_paid' => 'decimal:2',
+            'quantity' => 'decimal:3',
+            'unit_price' => 'decimal:2',
+            'subtotal' => 'decimal:2',
         ];
     }
 

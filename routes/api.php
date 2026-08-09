@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChargeApiController;
 use App\Http\Controllers\Api\ChantierApiController;
+use App\Http\Controllers\Api\ClientInvoiceApiController;
 use App\Http\Controllers\Api\ClientOrderApiController;
 use App\Http\Controllers\Api\ClientPaymentApiController;
 use App\Http\Controllers\Api\ClientApiController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\SaleOrderApiController;
 use App\Http\Controllers\Api\SupplierInvoiceApiController;
 use App\Http\Controllers\Api\SupplierPaymentApiController;
 use App\Http\Controllers\Api\QuoteApiController;
+use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\SupplierApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\TransactionApiController;
@@ -57,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('supplier-invoices/meta', [SupplierInvoiceApiController::class, 'meta']);
     Route::apiResource('supplier-invoices', SupplierInvoiceApiController::class);
+
+    Route::get('client-invoices/meta', [ClientInvoiceApiController::class, 'meta']);
+    Route::apiResource('client-invoices', ClientInvoiceApiController::class);
 
     Route::get('supplier-payments/meta', [SupplierPaymentApiController::class, 'meta']);
     Route::get('supplier-payments/orders', [SupplierPaymentApiController::class, 'orders']);

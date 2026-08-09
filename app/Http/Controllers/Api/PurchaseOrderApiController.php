@@ -13,9 +13,14 @@ class PurchaseOrderApiController extends Controller
 {
     public function index(Request $request)
     {
+        $docType = $this->resolveDocType($request);
+
         $query = PurchaseOrder::with(['supplier', 'items'])
-            ->when($request->search, fn ($q, $s) => $q->where('reference', 'like', "%{$s}%")
-                ->orWhere('designation', 'like', "%{$s}%"))
+            ->where('doc_type', $docType)
+            ->when($request->search, fn ($q, $s) => $q->where(function ($inner) use ($s) {
+                $inner->where('reference', 'like', "%{$s}%")
+                    ->orWhere('designation', 'like', "%{$s}%");
+            }))
             ->latest('order_date');
 
         if ($request->boolean('all')) {
@@ -26,8 +31,9 @@ class PurchaseOrderApiController extends Controller
             return response()->json([
                 'data' => $orders,
                 'meta' => [
-                    'next_ref' => $this->nextReference(),
+                    'next_ref' => $this->nextReference($docType),
                     'date' => now()->format('d/m/Y'),
+                    'doc_type' => $docType,
                     'total_montant' => number_format($totalMontant, 2, '.', ''),
                     'total_reglements' => number_format($totalReglements, 2, '.', ''),
                     'reliquat' => number_format(round($totalMontant - $totalReglements, 2), 2, '.', ''),
@@ -131,9 +137,12 @@ class PurchaseOrderApiController extends Controller
             $subtotal = collect($items)->sum('total');
             $first = $items[0] ?? null;
 
+            $docType = $validated['doc_type'] ?? 'bon_achat';
+
             $order = PurchaseOrder::create([
                 'supplier_id' => $validated['supplier_id'],
                 'order_date' => $validated['order_date'],
+                'doc_type' => $docType,
                 'bc_number' => $validated['bc_number'] ?? null,
                 'reglement' => $validated['reglement'] ?? null,
                 'echeance' => $validated['echeance'] ?? null,
@@ -146,7 +155,7 @@ class PurchaseOrderApiController extends Controller
                 'unit' => $first['unit'] ?? null,
                 'unit_price' => $first['unit_price'] ?? 0,
                 'quantity' => $first['quantity'] ?? 1,
-                'reference' => 'BA-PENDING',
+                'reference' => 'PENDING',
                 'subtotal' => $subtotal,
                 'total_ht' => $subtotal,
                 'tva' => 0,
@@ -155,7 +164,7 @@ class PurchaseOrderApiController extends Controller
                 'user_id' => $request->user()->id,
             ]);
 
-            $order->update(['reference' => $this->nextReference()]);
+            $order->update(['reference' => $this->nextReference($docType)]);
             $this->syncItems($order, $items);
 
             return $order->fresh(['supplier', 'items']);
@@ -224,6 +233,7 @@ class PurchaseOrderApiController extends Controller
         $rules = [
             'supplier_id' => ($partial ? 'sometimes' : 'required').'|exists:suppliers,id',
             'order_date' => ($partial ? 'sometimes' : 'required').'|date',
+            'doc_type' => 'nullable|in:bon_achat,bon_commande',
             'bc_number' => 'nullable|string|max:50',
             'reglement' => 'nullable|in:Esp,Chq,Eff,Vir,Vers',
             'echeance' => 'nullable|string|max:20',
@@ -317,20 +327,35 @@ class PurchaseOrderApiController extends Controller
         }
     }
 
-    private function nextReference(): string
+    private function resolveDocType(Request $request): string
     {
-        $prefix = 'B-A'.now()->format('y').'/';
-        $last = PurchaseOrder::where('reference', 'like', $prefix.'%')
+        $type = $request->input('doc_type', 'bon_achat');
+
+        return in_array($type, ['bon_achat', 'bon_commande'], true) ? $type : 'bon_achat';
+    }
+
+    private function nextReference(string $docType = 'bon_achat'): string
+    {
+        $prefix = $docType === 'bon_commande'
+            ? 'BC-'.now()->format('y').'/'
+            : 'B-A'.now()->format('y').'/';
+
+        $last = PurchaseOrder::where('doc_type', $docType)
+            ->where('reference', 'like', $prefix.'%')
             ->pluck('reference')
             ->map(fn ($reference) => (int) substr($reference, strrpos($reference, '/') + 1))
             ->max() ?? 0;
 
-        return $this->referenceFor($last + 1);
+        return $this->referenceFor($last + 1, $docType);
     }
 
-    private function referenceFor(int $id): string
+    private function referenceFor(int $id, string $docType = 'bon_achat'): string
     {
-        return 'B-A'.now()->format('y').'/'.str_pad((string) $id, 4, '0', STR_PAD_LEFT);
+        $prefix = $docType === 'bon_commande'
+            ? 'BC-'.now()->format('y').'/'
+            : 'B-A'.now()->format('y').'/';
+
+        return $prefix.str_pad((string) $id, 4, '0', STR_PAD_LEFT);
     }
 
     private function formatOrder(PurchaseOrder $order): array
@@ -340,6 +365,7 @@ class PurchaseOrderApiController extends Controller
         return [
             'id' => $order->id,
             'reference' => $order->reference,
+            'doc_type' => $order->doc_type ?: 'bon_achat',
             'bc_number' => $order->bc_number,
             'order_date' => $order->order_date?->format('d/m/Y'),
             'order_date_raw' => $order->order_date?->format('Y-m-d'),
