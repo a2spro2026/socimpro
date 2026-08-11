@@ -227,7 +227,12 @@ function FormPanel({
                                     <input type="text" value={form.bc_number} onChange={(e) => onChange('bc_number', e.target.value)} placeholder="N° Frns" className={inputClass} />
                                 </Field>
                                 <Field label="Client Livré">
-                                    <select value={form.client_livre} onChange={(e) => onChange('client_livre', e.target.value)} className={inputClass}>
+                                    <select
+                                        value={form.client_livre}
+                                        disabled
+                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
+                                        title="Indisponible"
+                                    >
                                         <option value="">—</option>
                                         {clients.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
                                     </select>
@@ -255,10 +260,26 @@ function FormPanel({
                                     </div>
                                 </Field>
                                 <Field label="Chauffeur">
-                                    <input type="text" value={form.chauffeur} onChange={(e) => onChange('chauffeur', e.target.value)} placeholder="Chauffeur" className={inputClass} />
+                                    <input
+                                        type="text"
+                                        value={form.chauffeur}
+                                        disabled
+                                        readOnly
+                                        placeholder="Chauffeur"
+                                        title="Indisponible"
+                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
+                                    />
                                 </Field>
                                 <Field label="Matricule">
-                                    <input type="text" value={form.matricule} onChange={(e) => onChange('matricule', e.target.value)} placeholder="Matricule" className={inputClass} />
+                                    <input
+                                        type="text"
+                                        value={form.matricule}
+                                        disabled
+                                        readOnly
+                                        placeholder="Matricule"
+                                        title="Indisponible"
+                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
+                                    />
                                 </Field>
                             </div>
                         </div>

@@ -63,7 +63,7 @@ function parseSoldeInput(value) {
     return Number.isFinite(n) ? String(Math.round(n)) : '';
 }
 
-/** Solde restant après règlements (pas le montant d'origine). */
+/** Solde total = solde initial + ventes − paiements. */
 function remainingSolde(row) {
     if (row?.solde != null && row.solde !== '') return row.solde;
     return row?.budget ?? row?.initial_balance ?? 0;
@@ -92,7 +92,8 @@ th{background:#f8fafc;width:180px;font-weight:700}
 <tr><th>Régl</th><td>${row.reglement || '—'}</td></tr>
 <tr><th>Adresse</th><td>${row.chantier_address || '—'}</td></tr>
 <tr><th>Échéance</th><td>${row.work_delay || row.echeance || '—'}</td></tr>
-<tr><th>Solde Initial</th><td><strong>${formatSolde(remainingSolde(row))}</strong></td></tr>
+<tr><th>Solde Initial</th><td>${formatSolde(row.budget ?? row.initial_balance ?? 0)}</td></tr>
+<tr><th>Solde</th><td><strong>${formatSolde(remainingSolde(row))}</strong></td></tr>
 <tr><th>Date création</th><td>${row.created_at || '—'}</td></tr>
 </table>
 <p class="footer">© STE SOCIMPRO — A2SPRO</p>
@@ -156,7 +157,8 @@ function ViewModal({ row, onClose }) {
                         ['Régl', row.reglement],
                         ['Adresse', row.chantier_address],
                         ['Échéance', row.work_delay || row.echeance],
-                        ['Solde Initial', formatSolde(remainingSolde(row)), hasSoldeInitial(remainingSolde(row))],
+                        ['Solde Initial', formatSolde(row.budget ?? row.initial_balance ?? 0), hasSoldeInitial(row.budget ?? row.initial_balance)],
+                        ['Solde', formatSolde(remainingSolde(row)), hasSoldeInitial(remainingSolde(row))],
                         ['Date', row.created_at],
                     ].map(([label, value, isRed]) => (
                         <div key={label} className="flex justify-between gap-4 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
@@ -370,7 +372,7 @@ export default function FicheClientPage() {
                     <table className="w-full text-sm min-w-[1050px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                                {['CR', 'Nom Client', 'Contact', 'Ville', 'Adresse', 'Type', 'Régl', 'Échéance', 'Solde Initial', 'Actions'].map((h) => (
+                                {['CR', 'Nom Client', 'Contact', 'Ville', 'Adresse', 'Type', 'Régl', 'Échéance', 'Solde Initial', 'Solde', 'Actions'].map((h) => (
                                     <th
                                         key={h}
                                         className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center"
@@ -384,7 +386,7 @@ export default function FicheClientPage() {
                             {loading ? (
                                 [...Array(3)].map((_, i) => (
                                     <tr key={i}>
-                                        {[...Array(10)].map((__, j) => (
+                                        {[...Array(11)].map((__, j) => (
                                             <td key={j} className="px-4 py-3 text-center">
                                                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[80px]" />
                                             </td>
@@ -422,6 +424,9 @@ export default function FicheClientPage() {
                                             <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
                                                 {row.work_delay || '—'}
                                             </span>
+                                        </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(row.budget ?? row.initial_balance) ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            {formatSolde(row.budget ?? row.initial_balance ?? 0)}
                                         </td>
                                         <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(remainingSolde(row)) ? 'text-red-600 dark:text-red-400' : 'text-brand-navy dark:text-orange-400'}`}>
                                             {formatSolde(remainingSolde(row))}

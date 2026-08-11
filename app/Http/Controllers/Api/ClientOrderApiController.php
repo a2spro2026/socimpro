@@ -75,25 +75,42 @@ class ClientOrderApiController extends Controller
             ->filter()
             ->values();
 
+        // Inclure les clients avec solde initial même sans mouvements
+        if (! $clientId) {
+            $clientsWithInitial = Client::query()
+                ->where('budget', '>', 0)
+                ->pluck('id');
+            $clientIds = $clientIds->merge($clientsWithInitial)->unique()->filter()->values();
+        } elseif ($clientIds->isEmpty()) {
+            $client = Client::find($clientId);
+            if ($client && (float) $client->budget > 0) {
+                $clientIds = collect([$clientId]);
+            }
+        }
+
         $clients = Client::whereIn('id', $clientIds)->get()->keyBy('id');
 
         $rows = $clientIds->map(function ($cid) use ($ventesFromSales, $ventesFromExecution, $paiementsByClient, $clients) {
             $ventesSale = $ventesFromSales->get($cid);
             $ventesExec = $ventesFromExecution->get($cid);
             $paiements = $paiementsByClient->get($cid);
+            $client = $clients->get($cid);
 
             $totalVentes = round(
                 (float) ($ventesSale->total_ventes ?? 0) + (float) ($ventesExec->total_ventes ?? 0),
                 2
             );
             $montantPaye = round((float) ($paiements->montant_paye ?? 0), 2);
-            $solde = round(max($totalVentes - $montantPaye, 0), 2);
-            $reliquat = round(max($montantPaye - $totalVentes, 0), 2);
+            $soldeInitial = round((float) ($client->budget ?? 0), 2);
+            // Solde = solde initial + ventes − paiements
+            $solde = round(max($soldeInitial + $totalVentes - $montantPaye, 0), 2);
+            $reliquat = round(max($montantPaye - $soldeInitial - $totalVentes, 0), 2);
 
             $derniereActivite = collect([
                 $ventesSale->derniere_commande ?? null,
                 $ventesExec->derniere_commande ?? null,
                 $paiements->dernier_paiement ?? null,
+                $client?->updated_at,
             ])
                 ->filter()
                 ->map(fn ($d) => $d instanceof \Carbon\Carbon ? $d : \Carbon\Carbon::parse($d))
@@ -104,9 +121,10 @@ class ClientOrderApiController extends Controller
                 'id' => $cid,
                 'client_id' => $cid,
                 'date' => $derniereActivite?->format('d/m/Y'),
-                'client' => $clients->get($cid)?->name ?? '—',
+                'client' => $client?->name ?? '—',
                 'total_ventes' => $totalVentes,
                 'montant_paye' => $montantPaye,
+                'solde_initial' => $soldeInitial,
                 'solde' => $solde,
                 'reliquat' => $reliquat,
             ];
