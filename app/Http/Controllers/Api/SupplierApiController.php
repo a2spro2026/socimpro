@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Models\SupplierPayment;
 use Illuminate\Http\Request;
 
 class SupplierApiController extends Controller
@@ -14,21 +16,42 @@ class SupplierApiController extends Controller
             ->when($request->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
             ->latest();
 
-        $suppliers = $request->boolean('all')
-            ? $query->get()->map(fn ($s) => $this->formatSupplier($s))
-            : $query->paginate(15)->through(fn ($s) => $this->formatSupplier($s));
+        if ($request->boolean('all')) {
+            $suppliers = $query->get();
+            $totals = $this->totalsBySupplier($suppliers->pluck('id')->all());
+
+            return response()->json([
+                'data' => $suppliers->map(fn ($s) => $this->formatSupplier(
+                    $s,
+                    $totals['achats'][$s->id] ?? 0,
+                    $totals['paye'][$s->id] ?? 0
+                )),
+                'meta' => [
+                    'next_id' => $this->nextSupplierCode(),
+                    'date' => now()->format('d/m/Y'),
+                ],
+            ]);
+        }
+
+        $paginator = $query->paginate(15);
+        $totals = $this->totalsBySupplier($paginator->getCollection()->pluck('id')->all());
+        $paginator->setCollection(
+            $paginator->getCollection()->map(fn ($s) => $this->formatSupplier(
+                $s,
+                $totals['achats'][$s->id] ?? 0,
+                $totals['paye'][$s->id] ?? 0
+            ))
+        );
 
         return response()->json([
-            'data' => $request->boolean('all') ? $suppliers : $suppliers->items(),
+            'data' => $paginator->items(),
             'meta' => [
                 'next_id' => $this->nextSupplierCode(),
                 'date' => now()->format('d/m/Y'),
             ],
-            ...($request->boolean('all') ? [] : [
-                'current_page' => $suppliers->currentPage(),
-                'last_page' => $suppliers->lastPage(),
-                'total' => $suppliers->total(),
-            ]),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'total' => $paginator->total(),
         ]);
     }
 
@@ -54,12 +77,18 @@ class SupplierApiController extends Controller
             'status' => $validated['status'] ?? 'actif',
         ]);
 
-        return response()->json($this->formatSupplier($supplier), 201);
+        return response()->json($this->formatSupplier($supplier, 0, 0), 201);
     }
 
     public function show(Supplier $supplier)
     {
-        return response()->json($this->formatSupplier($supplier->load(['invoices'])));
+        $totals = $this->totalsBySupplier([$supplier->id]);
+
+        return response()->json($this->formatSupplier(
+            $supplier->load(['invoices']),
+            $totals['achats'][$supplier->id] ?? 0,
+            $totals['paye'][$supplier->id] ?? 0
+        ));
     }
 
     public function update(Request $request, Supplier $supplier)
@@ -77,7 +106,13 @@ class SupplierApiController extends Controller
             'status' => 'in:actif,inactif',
         ]));
 
-        return response()->json($this->formatSupplier($supplier));
+        $totals = $this->totalsBySupplier([$supplier->id]);
+
+        return response()->json($this->formatSupplier(
+            $supplier->fresh(),
+            $totals['achats'][$supplier->id] ?? 0,
+            $totals['paye'][$supplier->id] ?? 0
+        ));
     }
 
     public function destroy(Supplier $supplier)
@@ -94,8 +129,49 @@ class SupplierApiController extends Controller
         return 'CF-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
-    private function formatSupplier(Supplier $supplier): array
+    /**
+     * @param  array<int>  $supplierIds
+     * @return array{achats: array<int, float>, paye: array<int, float>}
+     */
+    private function totalsBySupplier(array $supplierIds): array
     {
+        if ($supplierIds === []) {
+            return ['achats' => [], 'paye' => []];
+        }
+
+        $achats = PurchaseOrder::query()
+            ->whereIn('supplier_id', $supplierIds)
+            ->where('status', '!=', 'annule')
+            ->where(function ($q) {
+                $q->where('doc_type', 'bon_achat')
+                    ->orWhereNull('doc_type')
+                    ->orWhere('doc_type', '');
+            })
+            ->selectRaw('supplier_id, SUM(total_ttc) as total')
+            ->groupBy('supplier_id')
+            ->pluck('total', 'supplier_id');
+
+        $paye = SupplierPayment::query()
+            ->whereIn('supplier_id', $supplierIds)
+            ->selectRaw('supplier_id, SUM(montant) as total')
+            ->groupBy('supplier_id')
+            ->pluck('total', 'supplier_id');
+
+        $achatsMap = [];
+        $payeMap = [];
+        foreach ($supplierIds as $id) {
+            $achatsMap[$id] = round((float) ($achats[$id] ?? 0), 2);
+            $payeMap[$id] = round((float) ($paye[$id] ?? 0), 2);
+        }
+
+        return ['achats' => $achatsMap, 'paye' => $payeMap];
+    }
+
+    private function formatSupplier(Supplier $supplier, float $totalAchats = 0, float $montantPaye = 0): array
+    {
+        $initial = round((float) $supplier->initial_balance, 2);
+        $solde = $supplier->totalSolde($totalAchats, $montantPaye);
+
         return [
             'id' => $supplier->id,
             'code' => $supplier->code,
@@ -106,9 +182,12 @@ class SupplierApiController extends Controller
             'phone' => $supplier->phone,
             'address' => $supplier->address,
             'city' => $supplier->city,
-            'initial_balance' => number_format((float) $supplier->initial_balance, 2, '.', ''),
+            'initial_balance' => number_format($initial, 2, '.', ''),
             'initial_balance_paid' => number_format((float) ($supplier->initial_balance_paid ?? 0), 2, '.', ''),
-            'solde' => number_format($supplier->remainingInitialBalance(), 2, '.', ''),
+            'solde_initial_restant' => number_format($supplier->remainingInitialBalance(), 2, '.', ''),
+            'total_achats' => number_format($totalAchats, 2, '.', ''),
+            'montant_paye' => number_format($montantPaye, 2, '.', ''),
+            'solde' => number_format($solde, 2, '.', ''),
             'status' => $supplier->status,
             'payment_terms' => $supplier->payment_terms,
             'echeance' => $supplier->payment_terms,

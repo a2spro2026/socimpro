@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Package } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 export default function StockPage() {
     const [products, setProducts] = useState({ data: [] });
@@ -42,6 +43,7 @@ export default function StockPage() {
             </div>
 
             <div className="glass-card overflow-hidden shadow-card">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[products.data?.length]}>
                 <table className="w-full text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
                         <tr>
@@ -68,6 +70,7 @@ export default function StockPage() {
                         ))}
                     </tbody>
                 </table>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

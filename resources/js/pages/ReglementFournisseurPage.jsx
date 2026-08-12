@@ -4,6 +4,7 @@ import {
     Banknote, Wallet, AlertCircle, Search, X, RefreshCw, Download,
 } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
 const SOLDE_INITIAL_ID = 0;
@@ -159,6 +160,7 @@ function ViewModal({ row, onClose }) {
                     <div className="px-5 pb-5">
                         <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Allocations</p>
                         <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <ScrollAreaWithArrows deps={[row.allocations?.length]}>
                             <table className="w-full text-xs">
                                 <thead><tr className="bg-slate-50 dark:bg-slate-800"><th className="px-2 py-1.5">Bon</th><th className="px-2 py-1.5">Montant</th><th className="px-2 py-1.5">Action</th></tr></thead>
                                 <tbody>
@@ -171,6 +173,7 @@ function ViewModal({ row, onClose }) {
                                     ))}
                                 </tbody>
                             </table>
+                            </ScrollAreaWithArrows>
                         </div>
                     </div>
                 )}
@@ -217,7 +220,7 @@ function ImportReglModal({ open, rows, selected, loading, onToggle, onToggleAll,
                     Sélectionnez un ou plusieurs règlements client reçus pour remplir le règlement fournisseur (même chèque / effet / virement).
                 </p>
 
-                <div className="overflow-auto flex-1 min-h-0">
+                <ScrollAreaWithArrows className="flex-1 min-h-0" maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[900px]">
                         <thead className="sticky top-0 z-10">
                             <tr className="bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700">
@@ -279,7 +282,7 @@ function ImportReglModal({ open, rows, selected, loading, onToggle, onToggleAll,
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 shrink-0">
                     <button type="button" onClick={onClose} className="btn-secondary text-xs px-4">Fermer</button>
@@ -788,7 +791,7 @@ export default function ReglementFournisseurPage() {
                     <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-800 border-b border-white/10">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau de consultation</h3>
                     </div>
-                    <div className="overflow-x-auto">
+                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[payments.length, loadingList]}>
                         <table className="w-full text-sm min-w-[1100px]">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -840,7 +843,7 @@ export default function ReglementFournisseurPage() {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </ScrollAreaWithArrows>
                 </div>
 
                 <ViewModal row={viewRow} onClose={() => setViewRow(null)} />
@@ -918,7 +921,8 @@ export default function ReglementFournisseurPage() {
                     </div>
                 </div>
 
-                <div className="glass-card p-2.5 shadow-card border border-slate-200/60 dark:border-slate-700/60 overflow-x-auto">
+                <div className="glass-card p-2.5 shadow-card border border-slate-200/60 dark:border-slate-700/60">
+                    <ScrollAreaWithArrows>
                     <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_72px_90px_minmax(110px,1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
                         <Field label="Date">
                             <input type="date" required value={form.payment_date} onChange={(e) => set('payment_date', e.target.value)} className={inputClass} />
@@ -988,6 +992,7 @@ export default function ReglementFournisseurPage() {
                             <input type="text" value={form.remarque} onChange={(e) => set('remarque', e.target.value)} placeholder="Remarque" className={inputClass} />
                         </Field>
                     </div>
+                </ScrollAreaWithArrows>
                 </div>
             </form>
 
@@ -996,7 +1001,7 @@ export default function ReglementFournisseurPage() {
                     <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Commande à Payer :</h3>
                     </div>
-                    <div className="overflow-x-auto">
+                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[orders.length, loading]}>
                         <table className="w-full text-sm min-w-[1100px]">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -1077,7 +1082,7 @@ export default function ReglementFournisseurPage() {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </ScrollAreaWithArrows>
                 </div>
             )}
         </div>

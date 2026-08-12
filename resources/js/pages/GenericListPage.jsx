@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 export default function GenericListPage({ title, subtitle, endpoint, columns }) {
     const [data, setData] = useState({ data: [] });
@@ -28,6 +29,7 @@ export default function GenericListPage({ title, subtitle, endpoint, columns }) 
                 </div>
             ) : (
                 <div className="glass-card overflow-hidden shadow-card">
+                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[data.data?.length, loading]}>
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
                             <tr>{columns?.map((c) => <th key={c.key} className="px-5 py-3 text-left">{c.label}</th>)}</tr>
@@ -44,6 +46,7 @@ export default function GenericListPage({ title, subtitle, endpoint, columns }) 
                             )}
                         </tbody>
                     </table>
+                    </ScrollAreaWithArrows>
                 </div>
             )}
         </div>

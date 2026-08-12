@@ -4,6 +4,7 @@ import {
     ShoppingCart, ShoppingBag, Receipt, Wallet, AlertTriangle, X, Package,
 } from 'lucide-react';
 import api from '../../lib/api';
+import ScrollAreaWithArrows from '../ScrollAreaWithArrows';
 
 const cards = [
     {
@@ -310,7 +311,7 @@ function StockAlertsModal({ open, onClose, alerts, loading }) {
                         </button>
                     </div>
 
-                    <div className="overflow-auto flex-1">
+                    <ScrollAreaWithArrows className="flex-1 min-h-0" maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                         <table className="w-full text-sm min-w-[640px]">
                             <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
@@ -375,7 +376,7 @@ function StockAlertsModal({ open, onClose, alerts, loading }) {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </ScrollAreaWithArrows>
 
                     <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shrink-0 bg-slate-50 dark:bg-slate-800/60">
                         <div className="flex items-center gap-3 text-[11px]">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Save, RotateCcw, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
 import { formatMontant } from '../lib/formatMontant';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
 
 const REGLEMENT_OPTIONS = [
@@ -286,7 +287,7 @@ export default function FicheClientPage() {
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows>
                     <div className="grid grid-cols-[78px_72px_minmax(120px,1.2fr)_95px_90px_minmax(120px,1.1fr)_70px_70px_88px_95px] gap-1.5 items-end min-w-[1100px]">
                         <Field label="Date">
                             <input type="text" readOnly value={meta.date} className={readOnlyClass} />
@@ -346,7 +347,7 @@ export default function FicheClientPage() {
                             />
                         </Field>
                     </div>
-                </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button type="submit" disabled={saving} className="btn-primary text-sm">
@@ -368,7 +369,7 @@ export default function FicheClientPage() {
                 <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Liste des clients</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1050px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -444,14 +445,14 @@ export default function FicheClientPage() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={10} className="px-4 py-12 text-center text-slate-400">
+                                    <td colSpan={11} className="px-4 py-12 text-center text-slate-400">
                                         Aucun client enregistré
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

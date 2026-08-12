@@ -1,4 +1,5 @@
 import { FileSpreadsheet } from 'lucide-react';
+import ScrollAreaWithArrows from '../ScrollAreaWithArrows';
 
 function formatMontant(value) {
     const n = Math.round(Number(value) || 0);
@@ -31,7 +32,7 @@ export default function ReportTable({
                 )}
             </div>
 
-            <div className="overflow-x-auto">
+            <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows?.length, loading]}>
                 <table className="w-full text-sm min-w-[640px]">
                     <thead>
                         <tr className={grayHeader
@@ -103,7 +104,7 @@ export default function ReportTable({
                         )}
                     </tbody>
                 </table>
-            </div>
+            </ScrollAreaWithArrows>
         </div>
     );
 }

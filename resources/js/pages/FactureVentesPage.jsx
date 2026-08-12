@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
@@ -261,7 +262,7 @@ function FormPanel({
                                 <h3 className="text-xs font-bold text-white uppercase tracking-wide">Tableau de saisie</h3>
                                 <span className="text-[10px] text-blue-200 font-semibold tabular-nums">Total : {totalBon}</span>
                             </div>
-                            <div className="overflow-x-auto">
+                            <ScrollAreaWithArrows>
                                 <table className="w-full text-sm min-w-[860px]">
                                     <thead>
                                         <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -325,7 +326,7 @@ function FormPanel({
                                         ))}
                                     </tbody>
                                 </table>
-                            </div>
+                            </ScrollAreaWithArrows>
                             <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                                 <button
                                     type="button"
@@ -621,7 +622,7 @@ export default function FactureVentesPage() {
                 <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau des Factures de Vente</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -674,7 +675,7 @@ export default function FactureVentesPage() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

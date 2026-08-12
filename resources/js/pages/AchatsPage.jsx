@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, CheckCircle } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const formatMontant = (n) => {
     const v = Math.round(Number(n) || 0);
@@ -30,6 +31,7 @@ export default function AchatsPage() {
             </div>
 
             <div className="glass-card overflow-hidden shadow-card">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[orders.data?.length]}>
                 <table className="w-full text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
                         <tr>
@@ -64,6 +66,7 @@ export default function AchatsPage() {
                         ))}
                     </tbody>
                 </table>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

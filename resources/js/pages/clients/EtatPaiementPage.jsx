@@ -4,6 +4,7 @@ import api from '../../lib/api';
 import { formatMontant } from './bonExecutionUtils';
 import { formatSoldePlain, soldeTone, SoldeCell } from './clientAmountUtils';
 import { openPaymentPrintable } from './etatPaiementUtils';
+import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
 
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
 const CHANTIER_TYPE_OPTIONS = ['', 'Public', 'Privé'];
@@ -397,7 +398,8 @@ export default function EtatPaiementPage() {
                     </div>
                 )}
 
-                <div className="overflow-x-auto space-y-2">
+                <ScrollAreaWithArrows>
+                    <div className="space-y-2">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-[110px_80px_minmax(105px,0.85fr)_minmax(88px,0.75fr)_96px_88px] gap-2 items-end min-w-[900px]">
                         <Field label="Date" compact>
                             <input type="date" required value={form.payment_date} onChange={(e) => set('payment_date', e.target.value)} className={inputCompact} />
@@ -472,6 +474,7 @@ export default function EtatPaiementPage() {
                         </Field>
                     </div>
                 </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button type="submit" disabled={saving || (!editingPaymentId && !selectedIds.size)} className="btn-primary text-sm">
@@ -494,7 +497,7 @@ export default function EtatPaiementPage() {
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">État d'exécution</h3>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                         <table className="w-full text-sm table-fixed">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -568,7 +571,7 @@ export default function EtatPaiementPage() {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </ScrollAreaWithArrows>
                 </div>
 
                 <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60 min-w-0">
@@ -576,7 +579,7 @@ export default function EtatPaiementPage() {
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Etat Règlement</h3>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[reglementRows.length, loading]}>
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -618,7 +621,7 @@ export default function EtatPaiementPage() {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </ScrollAreaWithArrows>
                 </div>
             </div>
 

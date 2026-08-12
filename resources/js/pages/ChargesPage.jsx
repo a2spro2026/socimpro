@@ -3,6 +3,7 @@ import {
     Plus, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw, Wallet, Scale,
 } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const TYPE_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
 const BANQUE_OPTIONS = [
@@ -437,7 +438,7 @@ export default function ChargesPage() {
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1200px]">
                         <thead>
                             <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
@@ -490,7 +491,7 @@ export default function ChargesPage() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

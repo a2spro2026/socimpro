@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, Printer, FileText, RefreshCw, Search, Plus, Trash2 } from 'lucide-react';
 import api from '../../lib/api';
+import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
 import {
     STATUT_FILTER_OPTIONS,
     emptyFilters,
@@ -120,7 +121,7 @@ export default function DevisListPage() {
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -177,7 +178,7 @@ export default function DevisListPage() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

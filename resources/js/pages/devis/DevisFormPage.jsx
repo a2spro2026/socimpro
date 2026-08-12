@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft, Send, CheckCircle, Plus, Trash2, Printer, ChevronUp, ChevronDown } from 'lucide-react';
 import api from '../../lib/api';
 import DesignationPicker from '../../components/DesignationPicker';
+import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
 import {
     CONSISTANCE_OPTIONS,
     UNIT_OPTIONS,
@@ -322,7 +323,7 @@ export default function DevisFormPage() {
                     </div>
                 )}
 
-                <div className="overflow-x-auto shrink-0">
+                <ScrollAreaWithArrows className="shrink-0">
                     <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid xl:grid-cols-[92px_72px_minmax(100px,0.9fr)_minmax(68px,0.6fr)_0.75fr_96px_0.75fr_80px] gap-2 items-end min-w-[900px]">
                         <Field label="Date" compact>
                             <input type="text" readOnly value={meta.date} className={readOnlyCompact} />
@@ -368,7 +369,7 @@ export default function DevisFormPage() {
                             </div>
                         </Field>
                     </div>
-                </div>
+                </ScrollAreaWithArrows>
 
                 <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-col flex-1 min-h-0">
                     <div className="flex shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">

@@ -52,6 +52,11 @@ class PurchaseOrderApiController extends Controller
 
         $achatsQuery = PurchaseOrder::query()
             ->where('status', '!=', 'annule')
+            ->where(function ($q) {
+                $q->where('doc_type', 'bon_achat')
+                    ->orWhereNull('doc_type')
+                    ->orWhere('doc_type', '');
+            })
             ->when($supplierId, fn ($q, $id) => $q->where('supplier_id', $id))
             ->when($monthFilter, function ($q) use ($mois) {
                 [$year, $month] = explode('-', $mois);
@@ -83,20 +88,36 @@ class PurchaseOrderApiController extends Controller
             ->filter()
             ->values();
 
+        // Inclure les fournisseurs avec solde initial même sans mouvements
+        if (! $supplierId) {
+            $withInitial = Supplier::query()
+                ->where('initial_balance', '>', 0)
+                ->pluck('id');
+            $supplierIds = $supplierIds->merge($withInitial)->unique()->filter()->values();
+        } elseif ($supplierIds->isEmpty()) {
+            $supplier = Supplier::find($supplierId);
+            if ($supplier && (float) $supplier->initial_balance > 0) {
+                $supplierIds = collect([$supplierId]);
+            }
+        }
+
         $suppliers = Supplier::whereIn('id', $supplierIds)->get()->keyBy('id');
 
         $rows = $supplierIds->map(function ($sid) use ($achatsBySupplier, $paiementsBySupplier, $suppliers) {
             $achats = $achatsBySupplier->get($sid);
             $paiements = $paiementsBySupplier->get($sid);
+            $supplier = $suppliers->get($sid);
 
             $totalAchats = round((float) ($achats->total_achats ?? 0), 2);
             $montantPaye = round((float) ($paiements->montant_paye ?? 0), 2);
-            $solde = round(max($totalAchats - $montantPaye, 0), 2);
-            $reliquat = round(max($montantPaye - $totalAchats, 0), 2);
+            $soldeInitial = round((float) ($supplier->initial_balance ?? 0), 2);
+            // Solde = solde initial + bons d'achat − règlements
+            $solde = round(max($soldeInitial + $totalAchats - $montantPaye, 0), 2);
+            $reliquat = round(max($montantPaye - $soldeInitial - $totalAchats, 0), 2);
 
             $derniereCommande = $achats->derniere_commande ?? null;
             $dernierPaiement = $paiements->dernier_paiement ?? null;
-            $derniereActivite = collect([$derniereCommande, $dernierPaiement])
+            $derniereActivite = collect([$derniereCommande, $dernierPaiement, $supplier?->updated_at])
                 ->filter()
                 ->map(fn ($d) => $d instanceof \Carbon\Carbon ? $d : \Carbon\Carbon::parse($d))
                 ->sortDesc()
@@ -106,9 +127,10 @@ class PurchaseOrderApiController extends Controller
                 'id' => $sid,
                 'supplier_id' => $sid,
                 'date' => $derniereActivite?->format('d/m/Y'),
-                'fournisseur' => $suppliers->get($sid)?->name ?? '—',
+                'fournisseur' => $supplier?->name ?? '—',
                 'total_achats' => $totalAchats,
                 'montant_paye' => $montantPaye,
+                'solde_initial' => $soldeInitial,
                 'solde' => $solde,
                 'reliquat' => $reliquat,
             ];

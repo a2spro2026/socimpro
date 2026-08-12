@@ -4,6 +4,7 @@ import {
     ArrowDownCircle, Scale, Wallet, User, Building2,
 } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const COFFRE_OPTIONS = ['', 'Caisse', 'Cmpt Pers', 'Cmpt Ste'];
 const STATUT_OPTIONS = ['', 'Sortie', 'Entrée'];
@@ -417,7 +418,7 @@ export default function TransactionsPage() {
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows>
                     <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid xl:grid-cols-[112px_0.55fr_0.32fr_0.3fr_0.42fr_0.95fr_2.65fr_auto_auto] gap-2 items-end min-w-[980px]">
                         <Field label="Date" compact>
                             <input type="date" required value={form.transaction_date} onChange={(e) => set('transaction_date', e.target.value)} className={`${inputCompact} text-[12px] py-1.5`} />
@@ -454,7 +455,7 @@ export default function TransactionsPage() {
                             <Plus className="w-4 h-4" strokeWidth={2.5} />
                         </button>
                     </div>
-                </div>
+                </ScrollAreaWithArrows>
             </form>
 
             <div className="glass-card p-4 shadow-card border border-slate-200/60 dark:border-slate-700/60">
@@ -496,7 +497,7 @@ export default function TransactionsPage() {
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[900px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -541,7 +542,7 @@ export default function TransactionsPage() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

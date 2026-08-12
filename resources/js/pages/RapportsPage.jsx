@@ -3,6 +3,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 import api from '../lib/api';
 import { formatMontant } from './devis/devisUtils';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -38,6 +39,7 @@ export default function RapportsPage() {
             </div>
 
             <div className="glass-card overflow-hidden shadow-card">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[data?.chantiers?.length]}>
                 <table className="w-full text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
                         <tr>
@@ -62,6 +64,7 @@ export default function RapportsPage() {
                         ))}
                     </tbody>
                 </table>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

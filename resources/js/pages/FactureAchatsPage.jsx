@@ -3,6 +3,7 @@ import {
     Plus, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw, Receipt,
 } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const DEPOT_OPTIONS = [
     { value: 'depot_a', label: 'Depot A' },
@@ -224,7 +225,8 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
                                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Lignes facture</p>
                                 <button type="button" onClick={onAddLine} className="text-xs text-brand-navy dark:text-orange-400 font-semibold hover:underline">+ Ligne</button>
                             </div>
-                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div className="rounded-lg border border-slate-200 dark:border-slate-700">
+                                <ScrollAreaWithArrows>
                                 <table className="w-full text-xs min-w-[500px]">
                                     <thead>
                                         <tr className="bg-slate-50 dark:bg-slate-800/80">
@@ -255,6 +257,7 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
                                         ))}
                                     </tbody>
                                 </table>
+                            </ScrollAreaWithArrows>
                             </div>
                             <div className="flex justify-end gap-4 mt-3 text-sm">
                                 <span>HT : <strong className="tabular-nums">{formatMontant(totalHt)}</strong></span>
@@ -479,7 +482,7 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1000px]">
                         <thead>
                             <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
@@ -522,7 +525,7 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

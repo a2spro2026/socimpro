@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Printer, X, XCircle, Trash2, Pencil } from 'lucide-react';
 import api from '../lib/api';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const emptyHeader = {
     supplier_id: '',
@@ -150,7 +151,8 @@ function FormPanel({
                                     + Ligne
                                 </button>
                             </div>
-                            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div className="rounded-lg border border-slate-200 dark:border-slate-700">
+                                <ScrollAreaWithArrows>
                                 <table className="w-full text-xs min-w-[640px]">
                                     <thead>
                                         <tr className="bg-slate-50 dark:bg-slate-800/80">
@@ -222,6 +224,7 @@ function FormPanel({
                                         ))}
                                     </tbody>
                                 </table>
+                            </ScrollAreaWithArrows>
                             </div>
                             <div className="flex justify-end mt-3 text-sm">
                                 <span>Total : <strong className="tabular-nums text-brand-navy dark:text-orange-400">{formatMontant(total)}</strong></span>
@@ -482,7 +485,7 @@ export default function BonCommandePage() {
                 <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-indigo-900 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau des Bons de Commande</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[flatRows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
@@ -551,7 +554,7 @@ export default function BonCommandePage() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

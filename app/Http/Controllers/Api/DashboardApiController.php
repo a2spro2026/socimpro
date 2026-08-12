@@ -56,9 +56,17 @@ class DashboardApiController extends Controller
         $tresorerie = (float) Payment::where('type', 'client')->sum('amount')
             - (float) Payment::whereIn('type', ['fournisseur', 'personnel'])->sum('amount');
 
-        $soldeFournisseur = (float) (Supplier::query()
-            ->selectRaw('COALESCE(SUM(GREATEST(initial_balance - COALESCE(initial_balance_paid, 0), 0)), 0) as total')
-            ->value('total') ?? 0);
+        $totalBonsAchats = (float) PurchaseOrder::query()
+            ->where('status', '!=', 'annule')
+            ->where(function ($q) {
+                $q->where('doc_type', 'bon_achat')
+                    ->orWhereNull('doc_type')
+                    ->orWhere('doc_type', '');
+            })
+            ->sum('total_ttc');
+        $totalReglementsFournisseurs = (float) SupplierPayment::sum('montant');
+        $totalSoldesInitiauxFournisseurs = (float) Supplier::sum('initial_balance');
+        $soldeFournisseur = max($totalSoldesInitiauxFournisseurs + $totalBonsAchats - $totalReglementsFournisseurs, 0);
 
         $chantiersActifs = Chantier::where('status', 'en_cours')->where('archived', false)->count();
         $chantiersTermines = Chantier::where('status', 'termine')->count();

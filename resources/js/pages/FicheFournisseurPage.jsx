@@ -3,6 +3,7 @@ import { Save, RotateCcw, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw, 
 import api from '../lib/api';
 import { formatMontant } from '../lib/formatMontant';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
+import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const REGLEMENT_OPTIONS = [
     { value: '', label: '—' },
@@ -56,10 +57,13 @@ function hasSoldeInitial(value) {
     return Number.isFinite(n) && n !== 0;
 }
 
-/** Solde restant après règlements (pas le montant d'origine). */
+/** Solde total = solde initial + bons d'achat − règlements. */
 function remainingSolde(row) {
     if (row?.solde != null && row.solde !== '') return row.solde;
-    return row?.initial_balance ?? 0;
+    const initial = Number(row?.initial_balance) || 0;
+    const achats = Number(row?.total_achats) || 0;
+    const paye = Number(row?.montant_paye) || 0;
+    return Math.max(initial + achats - paye, 0);
 }
 
 function buildFicheHtml(row) {
@@ -85,7 +89,8 @@ th{background:#f8fafc;width:180px;font-weight:700}
 <tr><th>Ville</th><td>${row.city || '—'}</td></tr>
 <tr><th>Règlement</th><td>${row.reglement || '—'}</td></tr>
 <tr><th>Échéance</th><td>${row.echeance || row.payment_terms || '—'}</td></tr>
-<tr><th>Solde Initial</th><td><strong>${formatSolde(remainingSolde(row))}</strong></td></tr>
+<tr><th>Solde Initial</th><td>${formatSolde(row.initial_balance ?? 0)}</td></tr>
+<tr><th>Solde</th><td><strong>${formatSolde(remainingSolde(row))}</strong></td></tr>
 <tr><th>Date création</th><td>${row.created_at || '—'}</td></tr>
 </table>
 <p class="footer">© STE SOCIMPRO — A2SPRO</p>
@@ -153,7 +158,8 @@ function ViewModal({ row, onClose }) {
                         ['Ville', row.city],
                         ['Règlement', row.reglement],
                         ['Échéance', row.echeance || row.payment_terms],
-                        ['Solde Initial', formatSolde(remainingSolde(row)), hasSoldeInitial(remainingSolde(row))],
+                        ['Solde Initial', formatSolde(row.initial_balance), hasSoldeInitial(row.initial_balance)],
+                        ['Solde', formatSolde(remainingSolde(row)), hasSoldeInitial(remainingSolde(row))],
                         ['Date', row.created_at],
                     ].map(([label, value, isRed]) => (
                         <div key={label} className="flex justify-between gap-4 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
@@ -223,7 +229,7 @@ export default function FicheFournisseurPage() {
             city: row.city || '',
             reglement: row.reglement || '',
             echeance: parseDelayInput(row.echeance || row.payment_terms || ''),
-            initial_balance: parseSoldeInput(row.initial_balance ?? row.solde),
+            initial_balance: parseSoldeInput(row.initial_balance),
         });
         setEditingId(row.id);
         setError('');
@@ -374,11 +380,11 @@ export default function FicheFournisseurPage() {
                 <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Liste des fournisseurs</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[960px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                                {['ID', 'Nom Fournisseur', 'Contact', 'Adresse', 'Ville', 'Règlement', 'Échéance', 'Solde Initial', 'Actions'].map((h) => (
+                                {['ID', 'Nom Fournisseur', 'Contact', 'Adresse', 'Ville', 'Règlement', 'Échéance', 'Solde Initial', 'Solde', 'Actions'].map((h) => (
                                     <th
                                         key={h}
                                         className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center"
@@ -392,7 +398,7 @@ export default function FicheFournisseurPage() {
                             {loading ? (
                                 [...Array(3)].map((_, i) => (
                                     <tr key={i}>
-                                        {[...Array(9)].map((__, j) => (
+                                        {[...Array(10)].map((__, j) => (
                                             <td key={j} className="px-4 py-3 text-center">
                                                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[80px]" />
                                             </td>
@@ -421,6 +427,9 @@ export default function FicheFournisseurPage() {
                                                 {row.echeance || row.payment_terms || '—'}
                                             </span>
                                         </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(row.initial_balance) ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            {formatSolde(row.initial_balance ?? 0)}
+                                        </td>
                                         <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${hasSoldeInitial(remainingSolde(row)) ? 'text-red-600 dark:text-red-400' : 'text-brand-navy dark:text-orange-400'}`}>
                                             {formatSolde(remainingSolde(row))}
                                         </td>
@@ -437,14 +446,14 @@ export default function FicheFournisseurPage() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
+                                    <td colSpan={10} className="px-4 py-12 text-center text-slate-400">
                                         Aucun fournisseur enregistré
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                </div>
+                </ScrollAreaWithArrows>
             </div>
         </div>
     );

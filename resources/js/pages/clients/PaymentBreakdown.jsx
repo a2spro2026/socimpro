@@ -1,5 +1,6 @@
 import { Eye, Pencil, Printer, Trash2, FileText } from 'lucide-react';
 import { formatMontant } from './bonExecutionUtils';
+import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
 
 const REGLEMENT_LABELS = {
     Esp: 'Espèces',
@@ -62,7 +63,7 @@ export function PaymentBreakdown({ payments, compact = false, actions }) {
                 </span>
             </div>
 
-            <div className="overflow-x-auto">
+            <ScrollAreaWithArrows deps={[payments.length]}>
                 <table className="w-full text-xs">
                     <thead>
                         <tr className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-emerald-100 dark:border-emerald-900/30">
@@ -115,7 +116,7 @@ export function PaymentBreakdown({ payments, compact = false, actions }) {
                         </tr>
                     </tfoot>
                 </table>
-            </div>
+            </ScrollAreaWithArrows>
         </div>
     );
 }
