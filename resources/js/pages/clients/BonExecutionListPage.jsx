@@ -102,7 +102,7 @@ export default function BonExecutionListPage() {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
                 <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 border-b border-white/10 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">État d'Exécution</h3>
                     <button type="button" onClick={load} disabled={loading} className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Actualiser">
@@ -110,10 +110,9 @@ export default function BonExecutionListPage() {
                     </button>
                 </div>
 
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1400px]">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {columns.map((h) => (
                                     <th key={h} className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}

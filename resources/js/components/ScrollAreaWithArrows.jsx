@@ -9,10 +9,15 @@ export default function ScrollAreaWithArrows({
     children,
     className = '',
     maxHeight = null,
+    height = null,
     deps = [],
     stepX = 280,
     stepY = 72,
+    variant = null,
 }) {
+    const resolvedMaxHeight = maxHeight ?? (variant === 'table' ? 'min(42vh, 380px)' : null);
+    const resolvedHeight = height ?? null;
+    const resolvedClassName = variant === 'table' ? `rounded-b-2xl ${className}`.trim() : className;
     const ref = useRef(null);
     const [canLeft, setCanLeft] = useState(false);
     const [canRight, setCanRight] = useState(false);
@@ -67,13 +72,20 @@ export default function ScrollAreaWithArrows({
         'flex items-center justify-center text-slate-600 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-35 disabled:cursor-not-allowed transition-colors';
 
     return (
-        <div className={`flex min-w-0 ${className}`}>
+        <div className={`flex min-w-0 ${resolvedClassName}`}>
             <div className="flex-1 min-w-0 flex flex-col">
                 <div
                     ref={ref}
                     onScroll={update}
-                    style={maxHeight ? { maxHeight } : undefined}
-                    className={`overflow-auto min-w-0 ${maxHeight ? '' : 'max-h-none'}`}
+                    style={
+                        resolvedMaxHeight || resolvedHeight
+                            ? {
+                                maxHeight: resolvedMaxHeight || undefined,
+                                height: resolvedHeight || undefined,
+                            }
+                            : undefined
+                    }
+                    className={`overflow-auto min-w-0 min-h-0 ${resolvedMaxHeight || resolvedHeight ? '' : 'max-h-none'}`}
                 >
                     {children}
                 </div>

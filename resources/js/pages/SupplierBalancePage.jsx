@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, Search, Scale, Wallet, Receipt } from 'lucide-react';
+import { RefreshCw, Search } from 'lucide-react';
 import api from '../lib/api';
 import { ReliquatCell } from './clients/clientAmountUtils';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
@@ -38,28 +38,6 @@ function SoldeFournisseurCell({ value }) {
     );
 }
 
-function SummaryCard({ label, value, gradient, glow, icon: Icon }) {
-    return (
-        <div
-            className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${gradient} p-4 shadow-lg text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl`}
-            style={{ boxShadow: `0 10px 28px -8px ${glow}` }}
-        >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 pointer-events-none" />
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10 blur-2xl transition-transform duration-300 group-hover:scale-110" />
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/25" />
-            <div className="relative flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/85">{label}</p>
-                    <p className="mt-1.5 text-lg sm:text-xl font-bold tabular-nums leading-tight">{formatMontant(value)}</p>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white/15 ring-1 ring-white/20 backdrop-blur-sm shrink-0">
-                    <Icon className="w-5 h-5" strokeWidth={2} />
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function monthOptions() {
     const now = new Date();
     const options = [{ value: '', label: 'Tous les mois' }];
@@ -78,7 +56,6 @@ export default function SupplierBalancePage() {
     const [filters, setFilters] = useState(emptyFilters);
     const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
     const [rows, setRows] = useState([]);
-    const [summary, setSummary] = useState({ total_achats: 0, solde_total: 0, reliquat_total: 0 });
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
     const months = monthOptions();
@@ -92,16 +69,8 @@ export default function SupplierBalancePage() {
         api.get('/purchase-orders/balance', { params })
             .then((res) => {
                 setRows(res.data.data ?? []);
-                setSummary({
-                    total_achats: Number(res.data.meta?.total_achats) || 0,
-                    solde_total: Number(res.data.meta?.solde_total) || 0,
-                    reliquat_total: Number(res.data.meta?.reliquat_total) || 0,
-                });
             })
-            .catch(() => {
-                setRows([]);
-                setSummary({ total_achats: 0, solde_total: 0, reliquat_total: 0 });
-            })
+            .catch(() => setRows([]))
             .finally(() => setLoading(false));
     }, [appliedFilters]);
 
@@ -120,37 +89,10 @@ export default function SupplierBalancePage() {
     const handleSearch = () => setAppliedFilters({ ...filters });
 
     return (
-        <div className="space-y-4">
-            <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white">Balance Fournisseur</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Situation consolidée par fournisseur</p>
-            </div>
+        <div className="space-y-3">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Balance Fournisseur</h1>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <SummaryCard
-                    label="Total Achats"
-                    value={summary.total_achats}
-                    gradient="from-brand-navy via-blue-800 to-indigo-900"
-                    glow="rgba(30, 58, 95, 0.45)"
-                    icon={Receipt}
-                />
-                <SummaryCard
-                    label="Solde Total"
-                    value={summary.solde_total}
-                    gradient="from-red-500 via-rose-600 to-red-800"
-                    glow="rgba(239, 68, 68, 0.4)"
-                    icon={Scale}
-                />
-                <SummaryCard
-                    label="Reliquat"
-                    value={summary.reliquat_total}
-                    gradient="from-amber-400 via-yellow-500 to-amber-600"
-                    glow="rgba(245, 158, 11, 0.4)"
-                    icon={Wallet}
-                />
-            </div>
-
-            <div className="glass-card p-4 shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card p-4 shadow-card border border-slate-200/60 dark:border-slate-700/60 -mt-1">
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr_auto] gap-2.5 items-end max-w-3xl">
                     <Field label="Mois">
                         <select value={filters.mois} onChange={(e) => setFilter('mois', e.target.value)} className={filterClass}>
@@ -173,18 +115,18 @@ export default function SupplierBalancePage() {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                <div className="px-5 py-3.5 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 border-b border-white/10 flex items-center justify-between">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60 -mt-1">
+                <div className="px-5 py-3.5 rounded-t-2xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 border-b border-white/10 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Balance fournisseurs</h3>
                     <button type="button" onClick={load} disabled={loading} className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Actualiser">
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" height="min(42vh, 380px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[800px]">
-                        <thead>
-                            <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
+                        <thead className="sticky top-0 z-10">
+                            <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600 backdrop-blur-sm">
                                 {columns.map((h) => (
                                     <th
                                         key={h}
@@ -197,7 +139,7 @@ export default function SupplierBalancePage() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
-                                [...Array(4)].map((_, i) => (
+                                [...Array(6)].map((_, i) => (
                                     <tr key={i}>
                                         {columns.map((__, j) => (
                                             <td key={j} className="px-4 py-3 text-center">

@@ -290,10 +290,9 @@ function FormPanel({
                                 <h3 className="text-xs font-bold text-white uppercase tracking-wide">Tableau de saisie</h3>
                                 <span className="text-[10px] text-blue-200 font-semibold tabular-nums">Total : {totalBon}</span>
                             </div>
-                            <ScrollAreaWithArrows>
+                            <ScrollAreaWithArrows variant="table">
                                 <table className="w-full text-sm min-w-[860px]">
-                                    <thead>
-                                        <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                                    <thead className="sticky top-0 z-10">                                        <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                             {['Réf', 'Désignation', 'U', 'Qté', 'P/U', 'S/Total', ''].map((h) => (
                                                 <th key={h || 'act'} className="px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center whitespace-nowrap">{h}</th>
                                             ))}
@@ -673,14 +672,13 @@ export default function BonAchatsPage() {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
                 <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau des Bon D'achats</h3>
                 </div>
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Client Livré', 'Ville', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
                                     <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}

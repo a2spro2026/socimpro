@@ -226,10 +226,9 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
                                 <button type="button" onClick={onAddLine} className="text-xs text-brand-navy dark:text-orange-400 font-semibold hover:underline">+ Ligne</button>
                             </div>
                             <div className="rounded-lg border border-slate-200 dark:border-slate-700">
-                                <ScrollAreaWithArrows>
+                                <ScrollAreaWithArrows variant="table">
                                 <table className="w-full text-xs min-w-[500px]">
-                                    <thead>
-                                        <tr className="bg-slate-50 dark:bg-slate-800/80">
+                                    <thead className="sticky top-0 z-10">                                        <tr className="bg-slate-50 dark:bg-slate-800/80">
                                             {['Désignation', 'Qté', 'P/U', 'Total', ''].map((h) => (
                                                 <th key={h || 'x'} className="px-2 py-2 font-bold uppercase text-slate-500">{h}</th>
                                             ))}
@@ -472,7 +471,7 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
                 <div className={`px-5 py-3.5 bg-gradient-to-r ${accent} border-b border-white/10 flex items-center justify-between`}>
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
                         <Receipt className="w-4 h-4" /> Liste des factures
@@ -482,10 +481,9 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
                     </button>
                 </div>
 
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1000px]">
-                        <thead>
-                            <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
                                 {headers.map((h) => (
                                     <th key={h} className="px-3 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300 whitespace-nowrap text-center">{h}</th>
                                 ))}

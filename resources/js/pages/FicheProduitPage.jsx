@@ -349,11 +349,11 @@ export default function FicheProduitPage() {
                 </div>
             </form>
 
-            <div className="flex-1 min-h-0 flex flex-col glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                <div className="shrink-0 px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-teal-700 border-b border-white/10">
+            <div className="flex-1 min-h-0 flex flex-col glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
+                <div className="shrink-0 px-5 py-3.5 rounded-t-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-teal-700 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Liste des produits</h3>
                 </div>
-                <ScrollAreaWithArrows className="flex-1 min-h-0" maxHeight="min(60vh, 560px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" className="flex-1 min-h-0" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px] border-collapse">
                         <thead className="sticky top-0 z-10">
                             <tr className="border-b border-slate-200 dark:border-slate-700">

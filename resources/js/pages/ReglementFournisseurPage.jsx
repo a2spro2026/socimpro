@@ -160,7 +160,7 @@ function ViewModal({ row, onClose }) {
                     <div className="px-5 pb-5">
                         <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Allocations</p>
                         <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <ScrollAreaWithArrows deps={[row.allocations?.length]}>
+                            <ScrollAreaWithArrows variant="table" deps={[row.allocations?.length]}>
                             <table className="w-full text-xs">
                                 <thead><tr className="bg-slate-50 dark:bg-slate-800"><th className="px-2 py-1.5">Bon</th><th className="px-2 py-1.5">Montant</th><th className="px-2 py-1.5">Action</th></tr></thead>
                                 <tbody>
@@ -220,10 +220,10 @@ function ImportReglModal({ open, rows, selected, loading, onToggle, onToggleAll,
                     Sélectionnez un ou plusieurs règlements client reçus pour remplir le règlement fournisseur (même chèque / effet / virement).
                 </p>
 
-                <ScrollAreaWithArrows className="flex-1 min-h-0" maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" className="flex-1 min-h-0" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[900px]">
                         <thead className="sticky top-0 z-10">
-                            <tr className="bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700">
+                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 <th className="px-3 py-3 w-10">
                                     <input
                                         type="checkbox"
@@ -787,14 +787,16 @@ export default function ReglementFournisseurPage() {
                     </div>
                 </form>
 
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-800 border-b border-white/10">
+                <div className="glass-card shadow-card border border-slate-200/60 dark:border-slate-700/60 rounded-2xl">
+                    <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-800 border-b border-white/10 rounded-t-2xl">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau de consultation</h3>
                     </div>
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[payments.length, loadingList]}>
+                    <ScrollAreaWithArrows variant="table"
+                        deps={[payments.length, loadingList, appliedFilters.statut, appliedFilters.mois]}
+                    >
                         <table className="w-full text-sm min-w-[1100px]">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     {['Réf', 'Date', 'Fournisseur', 'Type', 'Nom de Tiré', 'N°', 'Bnq', 'Date Décaiss', 'Montant', 'Statut', 'Action'].map((h) => (
                                         <th key={h} className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                     ))}
@@ -922,7 +924,7 @@ export default function ReglementFournisseurPage() {
                 </div>
 
                 <div className="glass-card p-2.5 shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <ScrollAreaWithArrows>
+                    <ScrollAreaWithArrows variant="table">
                     <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_72px_90px_minmax(110px,1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
                         <Field label="Date">
                             <input type="date" required value={form.payment_date} onChange={(e) => set('payment_date', e.target.value)} className={inputClass} />
@@ -997,14 +999,16 @@ export default function ReglementFournisseurPage() {
             </form>
 
             {!editingId && (
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
+                <div className="glass-card shadow-card border border-slate-200/60 dark:border-slate-700/60 rounded-2xl">
+                    <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10 rounded-t-2xl">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Commande à Payer :</h3>
                     </div>
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[orders.length, loading]}>
+                    <ScrollAreaWithArrows variant="table"
+                        deps={[orders.length, loading, form.supplier_id, selectedIds.length]}
+                    >
                         <table className="w-full text-sm min-w-[1100px]">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     {['N° Bon', 'Date Commande', 'Client Livré', 'Montant Bon', 'Montant Payé', 'Solde', 'Sélection', 'Action'].map((h) => (
                                         <th key={h} className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                     ))}
