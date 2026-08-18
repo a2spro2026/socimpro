@@ -23,12 +23,13 @@ import {
     Receipt,
     Wallet,
     // Stock
-    Boxes,
     ArrowLeftRight,
     Factory,
     ClipboardCheck,
-    PackageOpen,
+    PackageMinus,
     PackageCheck,
+    PackageOpen,
+    Boxes,
     // Chantiers
     MapPin,
     TrendingDown,
@@ -98,11 +99,18 @@ export const navigation = [
         icon: Package,
         perm: 'stock.view',
         children: [
-            { to: '/stock/produits', label: 'Fiche Produit', icon: Boxes },
-            { to: '/stock/matiere-premiere', label: 'Stock Matière Première', icon: PackageOpen },
-            { to: '/stock/produit-fini', label: 'Stock Produit Fini', icon: PackageCheck },
+            {
+                label: 'Etat Stock',
+                icon: ClipboardList,
+                children: [
+                    { to: '/stock/etat-stock/cru', label: 'Cru', icon: PackageOpen },
+                    { to: '/stock/etat-stock/fini', label: 'Fini', icon: PackageCheck },
+                    { to: '/stock/etat-stock/divers', label: 'Divers', icon: Boxes },
+                ],
+            },
             { to: '/stock/bon-production', label: 'Bon Production', icon: Factory },
-            { to: '/stock/etat-production', label: 'Etat Production Journalière', icon: ClipboardCheck },
+            { to: '/stock/bon-sortie', label: 'Bon Sortie', icon: PackageMinus },
+            { to: '/stock/produit-fini', label: 'Produit Fini', icon: PackageCheck },
             { to: '/stock/mouvements', label: 'Mouvement Stock', icon: ArrowLeftRight },
         ],
     },

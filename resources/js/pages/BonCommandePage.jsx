@@ -126,7 +126,8 @@ function FormPanel({
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <ScrollAreaWithArrows variant="table">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 min-w-[640px]">
                             <Field label="Date">
                                 <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                             </Field>
@@ -143,6 +144,7 @@ function FormPanel({
                                 <input type="text" value={form.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Ville livraison" className={inputClass} />
                             </Field>
                         </div>
+                        </ScrollAreaWithArrows>
 
                         <div>
                             <div className="flex items-center justify-between mb-2">

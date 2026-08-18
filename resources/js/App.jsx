@@ -10,7 +10,6 @@ import BonCommandePage from './pages/BonCommandePage';
 import BonVentesPage from './pages/BonVentesPage';
 import ReglementFournisseurPage from './pages/ReglementFournisseurPage';
 import ReglementClientPage from './pages/ReglementClientPage';
-import FicheProduitPage from './pages/FicheProduitPage';
 import GenericListPage from './pages/GenericListPage';
 import ModulePage from './pages/ModulePage';
 import FicheFournisseurPage from './pages/FicheFournisseurPage';
@@ -28,7 +27,7 @@ import StockPage from './pages/StockPage';
 import RapportsPage from './pages/RapportsPage';
 import EtatPaiementPage from './pages/clients/EtatPaiementPage';
 import ReleveComptePage from './pages/ReleveComptePage';
-import StockMatierePremierePage from './pages/StockMatierePremierePage';
+import EtatStockPage from './pages/EtatStockPage';
 import FacturationBalancePage from './pages/facturation/FacturationBalancePage';
 
 function ProtectedRoute({ children }) {
@@ -89,13 +88,21 @@ function AppRoutes() {
                 <Route path="fournisseurs/reglements-achats" element={<ReglementFournisseurPage />} />
 
                 {/* Stock */}
-                <Route path="stock/produits" element={<FicheProduitPage />} />
-                <Route path="stock/mouvements" element={<StockPage />} />
+                <Route path="stock/produits" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/produits-crus" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/stock-produit-cru" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/etat-stock/cru" element={<EtatStockPage destination="cru" />} />
+                <Route path="stock/etat-stock/fini" element={<EtatStockPage destination="fini" />} />
+                <Route path="stock/etat-stock/divers" element={<EtatStockPage destination="divers" />} />
+                <Route path="stock/etat-stock" element={<Navigate to="/stock/etat-stock/cru" replace />} />
                 <Route path="stock/bon-production" element={<ModulePage />} />
-                <Route path="stock/etat-production" element={<ModulePage />} />
-                <Route path="stock/matiere-premiere" element={<StockMatierePremierePage />} />
+                <Route path="stock/bon-sortie" element={<ModulePage />} />
                 <Route path="stock/produit-fini" element={<ModulePage />} />
-                <Route path="stock/fiscal" element={<Navigate to="/stock/matiere-premiere" replace />} />
+                <Route path="stock/balance" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/mouvements" element={<StockPage />} />
+                <Route path="stock/matiere-premiere" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/fiscal" element={<Navigate to="/stock/etat-stock/cru" replace />} />
+                <Route path="stock/etat-production" element={<Navigate to="/stock/bon-production" replace />} />
 
                 {/* Chantiers */}
                 <Route path="chantiers/carte" element={<ChantiersPage />} />
@@ -119,7 +126,7 @@ function AppRoutes() {
                 {/* Redirections anciennes routes */}
                 <Route path="chantiers" element={<Navigate to="/chantiers/carte" replace />} />
                 <Route path="achats" element={<Navigate to="/fournisseurs/bons-achats" replace />} />
-                <Route path="stock" element={<Navigate to="/stock/produits" replace />} />
+                <Route path="stock" element={<Navigate to="/stock/etat-stock/cru" replace />} />
                 <Route path="fournisseurs" element={<Navigate to="/fournisseurs/fiches" replace />} />
                 <Route path="clients" element={<Navigate to="/clients/fiches" replace />} />
                 <Route path="personnel" element={<Navigate to="/personnel/fiches" replace />} />

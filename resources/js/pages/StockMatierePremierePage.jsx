@@ -80,7 +80,7 @@ function FormPanel({
             >
                 <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 shrink-0">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                        Saisie stock matière première — {currentRef}
+                        Saisie stock produit cru — {currentRef}
                     </h3>
                     <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10">
                         <X className="w-4 h-4" />
@@ -127,7 +127,7 @@ function FormPanel({
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700">
                             <div className="px-4 py-2 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 flex items-center justify-between">
-                                <h3 className="text-xs font-bold text-white uppercase tracking-wide">Lignes matière première</h3>
+                                <h3 className="text-xs font-bold text-white uppercase tracking-wide">Lignes produits crus</h3>
                                 <span className="text-[10px] text-blue-200 font-semibold tabular-nums">Total : {totalBon}</span>
                             </div>
                             <ScrollAreaWithArrows variant="table">
@@ -406,8 +406,8 @@ export default function StockMatierePremierePage() {
                     <PackageOpen className="w-5 h-5" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-white">Stock Matière Première</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Entrées et suivi des matières premières</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white">Stock produit Cru</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Entrées et suivi du stock produit cru</p>
                 </div>
             </div>
 
@@ -431,7 +431,7 @@ export default function StockMatierePremierePage() {
 
             <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60 -mt-1">
                 <div className="px-5 py-3.5 rounded-t-2xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 border-b border-white/10">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">Stock matière première</h3>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">Stock produit cru</h3>
                 </div>
 
                 <ScrollAreaWithArrows variant="table" height="min(42vh, 380px)" deps={[rows.length, loading]}>
@@ -474,7 +474,7 @@ export default function StockMatierePremierePage() {
                             ) : (
                                 <tr>
                                     <td colSpan={columns.length} className="px-4 py-12 text-center text-slate-400">
-                                        Aucune matière première — cliquez sur Ajouter
+                                        Aucun produit cru — cliquez sur Ajouter
                                     </td>
                                 </tr>
                             )}

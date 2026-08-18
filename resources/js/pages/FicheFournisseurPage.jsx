@@ -292,7 +292,8 @@ export default function FicheFournisseurPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 xl:grid-cols-[70px_70px_1.1fr_0.8fr_1fr_1fr_0.65fr_0.7fr_0.75fr_0.85fr] gap-2.5 items-end">
+                <ScrollAreaWithArrows variant="table">
+                <div className="grid grid-cols-2 sm:grid-cols-5 xl:grid-cols-[70px_70px_1.1fr_0.8fr_1fr_1fr_0.65fr_0.7fr_0.75fr_0.85fr] gap-2.5 items-end min-w-[1100px]">
                     <Field label="Date">
                         <input type="text" readOnly value={meta.date} className={readOnlyClass} />
                     </Field>
@@ -347,6 +348,7 @@ export default function FicheFournisseurPage() {
                         />
                     </Field>
                 </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button type="submit" disabled={saving} className="btn-primary text-sm">

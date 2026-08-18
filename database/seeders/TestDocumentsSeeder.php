@@ -44,7 +44,7 @@ class TestDocumentsSeeder extends Seeder
             $this->seedClientPayments($clients, $saleOrders, $user->id);
         });
 
-        $this->command?->info('10 bons d\'achat, 10 bons de vente et 12 règlements test créés.');
+        $this->command?->info('10 bons d\'achat, 10 bons de vente, 10 règlements fournisseur et 10 règlements client créés.');
     }
 
     private function ensureSuppliers()
@@ -228,7 +228,7 @@ class TestDocumentsSeeder extends Seeder
 
     private function seedSupplierPayments($suppliers, array $purchaseOrders, int $userId): void
     {
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $order = $purchaseOrders[$i];
             $supplier = $suppliers->firstWhere('id', $order->supplier_id);
             $amount = round((float) $order->total_ttc * (rand(30, 100) / 100), 2);
@@ -271,7 +271,7 @@ class TestDocumentsSeeder extends Seeder
 
     private function seedClientPayments($clients, array $saleOrders, int $userId): void
     {
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $order = $saleOrders[$i];
             $client = $clients->firstWhere('id', $order->client_id);
             $amount = round((float) $order->total_ttc * (rand(25, 100) / 100), 2);

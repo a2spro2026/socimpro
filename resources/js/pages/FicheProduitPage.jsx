@@ -272,7 +272,8 @@ export default function FicheProduitPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-[0.7fr_1.8fr_0.65fr_0.7fr_1fr_0.65fr_0.65fr] gap-1.5 items-end w-full">
+                <ScrollAreaWithArrows variant="table">
+                <div className="grid grid-cols-[0.7fr_1.8fr_0.65fr_0.7fr_1fr_0.65fr_0.65fr] gap-1.5 items-end w-full min-w-[900px]">
                     <Field label="Réf" compact>
                         <input
                             type="text"
@@ -327,6 +328,7 @@ export default function FicheProduitPage() {
                         </select>
                     </Field>
                 </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button type="submit" disabled={saving} className="btn-primary text-sm">

@@ -126,7 +126,7 @@ class SupplierPaymentApiController extends Controller
         $validated = $request->validate([
             'payment_date' => 'required|date',
             'supplier_id' => 'required|exists:suppliers,id',
-            'reglement' => 'nullable|in:Esp,Chq,Eff,Vir,Vers',
+            'reglement' => 'nullable|string|max:10',
             'numero' => 'nullable|string|max:50',
             'banque' => 'nullable|string|max:100',
             'nom_tire' => 'nullable|string|max:150',
@@ -308,7 +308,7 @@ class SupplierPaymentApiController extends Controller
         $validated = $request->validate([
             'payment_date' => 'sometimes|required|date',
             'supplier_id' => 'sometimes|required|exists:suppliers,id',
-            'reglement' => 'nullable|in:Esp,Chq,Eff,Vir,Vers',
+            'reglement' => 'nullable|string|max:10',
             'numero' => 'nullable|string|max:50',
             'banque' => 'nullable|string|max:100',
             'nom_tire' => 'nullable|string|max:150',

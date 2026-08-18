@@ -18,6 +18,7 @@ export default function ScrollAreaWithArrows({
     const resolvedMaxHeight = maxHeight ?? (variant === 'table' ? 'min(42vh, 380px)' : null);
     const resolvedHeight = height ?? null;
     const resolvedClassName = variant === 'table' ? `rounded-b-2xl ${className}`.trim() : className;
+    const alwaysShowArrows = variant === 'table';
     const ref = useRef(null);
     const [canLeft, setCanLeft] = useState(false);
     const [canRight, setCanRight] = useState(false);
@@ -25,6 +26,8 @@ export default function ScrollAreaWithArrows({
     const [canDown, setCanDown] = useState(false);
     const [needsH, setNeedsH] = useState(false);
     const [needsV, setNeedsV] = useState(false);
+    const showH = alwaysShowArrows || needsH;
+    const showV = alwaysShowArrows || needsV;
 
     const update = useCallback(() => {
         const el = ref.current;
@@ -89,7 +92,7 @@ export default function ScrollAreaWithArrows({
                 >
                     {children}
                 </div>
-                {needsH && (
+                {showH && (
                     <div className="flex shrink-0 h-9 bg-slate-200 dark:bg-slate-700 border-t border-slate-300 dark:border-slate-600">
                         <button
                             type="button"
@@ -117,7 +120,7 @@ export default function ScrollAreaWithArrows({
                     </div>
                 )}
             </div>
-            {needsV && (
+            {showV && (
                 <div className="flex flex-col w-9 shrink-0 bg-slate-200 dark:bg-slate-700 border-l border-slate-300 dark:border-slate-600">
                     <button
                         type="button"

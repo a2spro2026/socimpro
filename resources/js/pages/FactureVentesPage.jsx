@@ -210,7 +210,8 @@ function FormPanel({
                         )}
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5 items-end">
+                            <ScrollAreaWithArrows variant="table">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5 items-end min-w-[1100px]">
                                 <Field label="Date">
                                     <input type="date" required value={form.invoice_date} onChange={(e) => onChange('invoice_date', e.target.value)} className={inputClass} />
                                 </Field>
@@ -255,6 +256,7 @@ function FormPanel({
                                     <input type="text" value={form.matricule} onChange={(e) => onChange('matricule', e.target.value)} placeholder="Matricule" className={inputClass} />
                                 </Field>
                             </div>
+                            </ScrollAreaWithArrows>
                         </div>
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">

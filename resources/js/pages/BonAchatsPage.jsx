@@ -9,12 +9,21 @@ import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
+const DESTINATION_OPTIONS = [
+    { value: '', label: '—' },
+    { value: 'cru', label: 'Cru' },
+    { value: 'divers', label: 'Divers' },
+];
+
+function destinationLabel(value) {
+    return DESTINATION_OPTIONS.find((o) => o.value === value)?.label || value || '—';
+}
 
 const emptyHeader = {
     supplier_id: '',
     order_date: '',
     city: '',
-    client_livre: '',
+    destination: '',
     reglement: '',
     echeance: '',
     bc_number: '',
@@ -104,7 +113,7 @@ th{background:#f8fafc;font-weight:700}.badge{background:#fff7ed;color:#ea580c;pa
 <h1>STE SOCIMPRO — Bon d'Achat <span class="badge">${esc(row.reference)}</span></h1>
 <table>
 <tr><th>Date</th><td>${esc(row.order_date || '—')}</td><th>Fournisseur</th><td>${esc(row.fournisseur || '—')}</td></tr>
-<tr><th>N° Frns</th><td>${esc(row.bc_number || '—')}</td><th>Client Livré</th><td>${esc(row.client_livre || '—')}</td></tr>
+<tr><th>N° Frns</th><td>${esc(row.bc_number || '—')}</td><th>Destination</th><td>${esc(destinationLabel(row.destination))}</td></tr>
 <tr><th>Ville Livraison</th><td>${esc(row.city || '—')}</td><th>Type Rég / Échéance</th><td>${esc(row.reglement || '—')} / ${esc(row.echeance || '—')}</td></tr>
 <tr><th>Chauffeur</th><td>${esc(row.chauffeur || '—')}</td><th>Matricule</th><td>${esc(row.matricule || '—')}</td></tr>
 </table>
@@ -145,7 +154,7 @@ function ViewModal({ row, onClose }) {
     if (!row) return null;
     const header = [
         ['Date', row.order_date], ['N° B-A', row.reference], ['Fournisseur', row.fournisseur],
-        ['N° Frns', row.bc_number], ['Client Livré', row.client_livre], ['Ville Livraison', row.city],
+        ['N° Frns', row.bc_number], ['Destination', destinationLabel(row.destination)], ['Ville Livraison', row.city],
         ['Type Rég', row.reglement], ['Échéance', row.echeance], ['Chauffeur', row.chauffeur], ['Matricule', row.matricule],
     ];
     return (
@@ -183,7 +192,7 @@ function ViewModal({ row, onClose }) {
 }
 
 function FormPanel({
-    open, form, lines, currentRef, saving, error, suppliers, clients, products,
+    open, form, lines, currentRef, saving, error, suppliers, products,
     onChange, updateLine, handleSelectProduct, addLine, removeLine, onClose, onSubmit, editingId,
 }) {
     if (!open) return null;
@@ -211,7 +220,8 @@ function FormPanel({
                         )}
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2.5 items-end">
+                            <ScrollAreaWithArrows variant="table">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2.5 items-end min-w-[1100px]">
                                 <Field label="Date">
                                     <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                                 </Field>
@@ -227,15 +237,16 @@ function FormPanel({
                                 <Field label="N° Frns">
                                     <input type="text" value={form.bc_number} onChange={(e) => onChange('bc_number', e.target.value)} placeholder="N° Frns" className={inputClass} />
                                 </Field>
-                                <Field label="Client Livré">
+                                <Field label="Destination">
                                     <select
-                                        value={form.client_livre}
-                                        disabled
-                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
-                                        title="Indisponible"
+                                        required
+                                        value={form.destination}
+                                        onChange={(e) => onChange('destination', e.target.value)}
+                                        className={inputClass}
                                     >
-                                        <option value="">—</option>
-                                        {clients.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        {DESTINATION_OPTIONS.map((o) => (
+                                            <option key={o.value || 'empty'} value={o.value}>{o.label}</option>
+                                        ))}
                                     </select>
                                 </Field>
                                 <Field label="Ville Livraison">
@@ -283,6 +294,7 @@ function FormPanel({
                                     />
                                 </Field>
                             </div>
+                            </ScrollAreaWithArrows>
                         </div>
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -386,7 +398,6 @@ export default function BonAchatsPage() {
     const [lines, setLines] = useState([emptyLine()]);
     const [rows, setRows] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
-    const [clients, setClients] = useState([]);
     const [products, setProducts] = useState([]);
     const [meta, setMeta] = useState({ next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
     const [loading, setLoading] = useState(true);
@@ -422,14 +433,12 @@ export default function BonAchatsPage() {
         Promise.all([
             api.get('/purchase-orders', { params: { all: 1, doc_type: 'bon_achat' } }),
             api.get('/suppliers', { params: { all: 1 } }),
-            api.get('/clients', { params: { all: 1 } }),
             api.get('/products', { params: { all: 1 } }),
         ])
-            .then(([ordersRes, suppliersRes, clientsRes, productsRes]) => {
+            .then(([ordersRes, suppliersRes, productsRes]) => {
                 setRows(ordersRes.data.data ?? []);
                 setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
                 setSuppliers(suppliersRes.data.data ?? []);
-                setClients(clientsRes.data.data ?? []);
                 setProducts(productsRes.data.data ?? []);
             })
             .catch(() => setRows([]))
@@ -488,7 +497,7 @@ export default function BonAchatsPage() {
             supplier_id: row.supplier_id || '',
             order_date: row.order_date_raw || '',
             city: row.city || '',
-            client_livre: row.client_livre || '',
+            destination: row.destination || '',
             reglement: row.reglement || '',
             echeance: parseDelayInput(row.echeance || ''),
             bc_number: row.bc_number || '',
@@ -545,6 +554,10 @@ export default function BonAchatsPage() {
             setError('Sélectionnez un fournisseur');
             return;
         }
+        if (!form.destination) {
+            setError('Sélectionnez une destination (Cru ou Divers)');
+            return;
+        }
 
         setSaving(true);
         const payload = {
@@ -552,7 +565,7 @@ export default function BonAchatsPage() {
             order_date: form.order_date || new Date().toISOString().slice(0, 10),
             doc_type: 'bon_achat',
             city: form.city || null,
-            client_livre: form.client_livre || null,
+            destination: form.destination || null,
             reglement: form.reglement || null,
             echeance: formatDelaySave(form.echeance),
             bc_number: form.bc_number || null,
@@ -612,7 +625,6 @@ export default function BonAchatsPage() {
                 saving={saving}
                 error={error}
                 suppliers={suppliers}
-                clients={clients}
                 products={products}
                 onChange={onChange}
                 updateLine={updateLine}
@@ -679,7 +691,7 @@ export default function BonAchatsPage() {
                 <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
-                                {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Client Livré', 'Ville', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
+                                {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Destination', 'Ville', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
                                     <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}
                             </tr>
@@ -702,7 +714,7 @@ export default function BonAchatsPage() {
                                         <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-orange-400">{row.reference}</td>
                                         <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur || '—'}</td>
                                         <td className="px-4 py-2.5 text-center font-mono text-xs text-slate-600 dark:text-slate-300">{row.bc_number || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.client_livre || '—'}</td>
+                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{destinationLabel(row.destination)}</td>
                                         <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.city || '—'}</td>
                                         <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
                                             {orderTotalQuantity(row).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}

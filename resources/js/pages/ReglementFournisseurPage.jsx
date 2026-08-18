@@ -7,6 +7,8 @@ import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
+const BANQUE_OPTIONS = ['Attijariwafa', 'BMCE', 'Banque Populaire', 'CIH', 'BMCI', 'Crédit du Maroc', 'CFG', 'Société Générale'];
+const isEspReglement = (value) => (value || '').trim().toLowerCase() === 'esp';
 const SOLDE_INITIAL_ID = 0;
 const STATUT_OPTIONS = [
     { value: 'Inst', label: 'Inst', className: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600' },
@@ -925,7 +927,7 @@ export default function ReglementFournisseurPage() {
 
                 <div className="glass-card p-2.5 shadow-card border border-slate-200/60 dark:border-slate-700/60">
                     <ScrollAreaWithArrows variant="table">
-                    <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_72px_90px_minmax(110px,1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
+                    <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_minmax(140px,1.2fr)_90px_minmax(130px,1.1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
                         <Field label="Date">
                             <input type="date" required value={form.payment_date} onChange={(e) => set('payment_date', e.target.value)} className={inputClass} />
                         </Field>
@@ -939,20 +941,25 @@ export default function ReglementFournisseurPage() {
                             </select>
                         </Field>
                         <Field label="Type Rég">
-                            <select
+                            <input
+                                type="text"
+                                list="rf-type-reglement"
+                                maxLength={10}
                                 value={form.reglement}
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     setForm((f) => ({
                                         ...f,
                                         reglement: value,
-                                        ...(value === 'Esp' ? { numero: '', banque: '', nom_tire: '' } : {}),
+                                        ...(value.trim().toLowerCase() === 'esp' ? { numero: '', banque: '', nom_tire: '' } : {}),
                                     }));
                                 }}
+                                placeholder="Esp, Chq…"
                                 className={inputClass}
-                            >
-                                {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || '—'}</option>)}
-                            </select>
+                            />
+                            <datalist id="rf-type-reglement">
+                                {REGLEMENT_OPTIONS.filter(Boolean).map((v) => <option key={v} value={v} />)}
+                            </datalist>
                         </Field>
                         <Field label="N° régl">
                             <input
@@ -960,19 +967,24 @@ export default function ReglementFournisseurPage() {
                                 value={form.numero}
                                 onChange={(e) => set('numero', e.target.value)}
                                 placeholder="N°"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
                         </Field>
                         <Field label="Banq">
                             <input
                                 type="text"
+                                list="rf-banque"
+                                maxLength={100}
                                 value={form.banque}
                                 onChange={(e) => set('banque', e.target.value)}
                                 placeholder="Banque"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
+                            <datalist id="rf-banque">
+                                {BANQUE_OPTIONS.map((v) => <option key={v} value={v} />)}
+                            </datalist>
                         </Field>
                         <Field label="Nom de Tiré">
                             <input
@@ -980,8 +992,8 @@ export default function ReglementFournisseurPage() {
                                 value={form.nom_tire}
                                 onChange={(e) => set('nom_tire', e.target.value)}
                                 placeholder="Nom tiré"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
                         </Field>
                         <Field label="Montant Régl">

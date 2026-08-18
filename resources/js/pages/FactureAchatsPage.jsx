@@ -187,7 +187,8 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
                             <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border border-red-100 dark:border-red-800">{error}</div>
                         )}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <ScrollAreaWithArrows variant="table">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 min-w-[720px]">
                             <Field label="Date">
                                 <input type="date" required value={form.invoice_date} onChange={(e) => onChange('invoice_date', e.target.value)} className={inputClass} />
                             </Field>
@@ -219,6 +220,7 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
                                 </Field>
                             </div>
                         </div>
+                        </ScrollAreaWithArrows>
 
                         <div>
                             <div className="flex items-center justify-between mb-2">
