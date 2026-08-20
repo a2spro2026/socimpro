@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus, PlusCircle, XCircle, Eye, Pencil, Trash2, Printer, FileText, X, Package, Wallet, Scale,
@@ -7,7 +7,7 @@ import api from '../lib/api';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
-const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
+const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M┬▓', 'M┬│', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
 
 const emptyHeader = {
@@ -88,10 +88,10 @@ function buildBonHtml(row) {
         unit_price: row.unit_price,
         total: row.subtotal,
     }]).map((i) => `<tr>
-<td>${esc(i.article_ref || '—')}</td>
-<td>${esc(i.description || '—')}</td>
-<td>${esc(i.unit || '—')}</td>
-<td>${esc(i.quantity ?? '—')}</td>
+<td>${esc(i.article_ref || 'ÔÇö')}</td>
+<td>${esc(i.description || 'ÔÇö')}</td>
+<td>${esc(i.unit || 'ÔÇö')}</td>
+<td>${esc(i.quantity ?? 'ÔÇö')}</td>
 <td>${esc(formatMontant(i.unit_price))}</td>
 <td><strong>${esc(formatMontant(i.total))}</strong></td>
 </tr>`).join('');
@@ -101,15 +101,15 @@ function buildBonHtml(row) {
 table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #e2e8f0;padding:8px;font-size:12px;text-align:center}
 th{background:#f8fafc;font-weight:700}.badge{background:#fff7ed;color:#ea580c;padding:4px 10px;border-radius:999px;font-weight:700}
 </style></head><body>
-<h1>STE SOCIMPRO — Bon d'Achat <span class="badge">${esc(row.reference)}</span></h1>
+<h1>STE SOCIMPRO ÔÇö Bon d'Achat <span class="badge">${esc(row.reference)}</span></h1>
 <table>
-<tr><th>Date</th><td>${esc(row.order_date || '—')}</td><th>Fournisseur</th><td>${esc(row.fournisseur || '—')}</td></tr>
-<tr><th>N° Frns</th><td>${esc(row.bc_number || '—')}</td><th>Client Livré</th><td>${esc(row.client_livre || '—')}</td></tr>
-<tr><th>Ville Livraison</th><td>${esc(row.city || '—')}</td><th>Type Rég / Échéance</th><td>${esc(row.reglement || '—')} / ${esc(row.echeance || '—')}</td></tr>
-<tr><th>Chauffeur</th><td>${esc(row.chauffeur || '—')}</td><th>Matricule</th><td>${esc(row.matricule || '—')}</td></tr>
+<tr><th>Date</th><td>${esc(row.order_date || 'ÔÇö')}</td><th>Fournisseur</th><td>${esc(row.fournisseur || 'ÔÇö')}</td></tr>
+<tr><th>N┬░ Frns</th><td>${esc(row.bc_number || 'ÔÇö')}</td><th>Client Livr├®</th><td>${esc(row.client_livre || 'ÔÇö')}</td></tr>
+<tr><th>Ville Livraison</th><td>${esc(row.city || 'ÔÇö')}</td><th>Type R├®g / ├ëch├®ance</th><td>${esc(row.reglement || 'ÔÇö')} / ${esc(row.echeance || 'ÔÇö')}</td></tr>
+<tr><th>Chauffeur</th><td>${esc(row.chauffeur || 'ÔÇö')}</td><th>Matricule</th><td>${esc(row.matricule || 'ÔÇö')}</td></tr>
 </table>
 <table>
-<thead><tr><th>Réf</th><th>Désignation</th><th>U</th><th>Qté</th><th>P/U</th><th>S/Total</th></tr></thead>
+<thead><tr><th>R├®f</th><th>D├®signation</th><th>U</th><th>Qt├®</th><th>P/U</th><th>S/Total</th></tr></thead>
 <tbody>${itemsRows}</tbody>
 </table>
 <p style="text-align:right;font-weight:700;margin-top:12px">Total : ${esc(formatMontant(row.subtotal ?? row.montant))}</p>
@@ -144,9 +144,9 @@ function ActionBtn({ title, onClick, icon: Icon, color = 'slate' }) {
 function ViewModal({ row, onClose }) {
     if (!row) return null;
     const header = [
-        ['Date', row.order_date], ['N° B-A', row.reference], ['Fournisseur', row.fournisseur],
-        ['N° Frns', row.bc_number], ['Client Livré', row.client_livre], ['Ville Livraison', row.city],
-        ['Type Rég', row.reglement], ['Échéance', row.echeance], ['Chauffeur', row.chauffeur], ['Matricule', row.matricule],
+        ['Date', row.order_date], ['N┬░ B-A', row.reference], ['Fournisseur', row.fournisseur],
+        ['N┬░ Frns', row.bc_number], ['Client Livr├®', row.client_livre], ['Ville Livraison', row.city],
+        ['Type R├®g', row.reglement], ['├ëch├®ance', row.echeance], ['Chauffeur', row.chauffeur], ['Matricule', row.matricule],
     ];
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -162,14 +162,14 @@ function ViewModal({ row, onClose }) {
                     {header.map(([label, value]) => (
                         <div key={label} className="flex justify-between gap-4 py-1.5 border-b border-slate-100 dark:border-slate-800">
                             <span className="text-slate-500 shrink-0">{label}</span>
-                            <span className="font-medium text-slate-800 dark:text-white text-right">{value || '—'}</span>
+                            <span className="font-medium text-slate-800 dark:text-white text-right">{value || 'ÔÇö'}</span>
                         </div>
                     ))}
                     <p className="text-[10px] font-bold uppercase tracking-wider text-brand-navy dark:text-orange-400 pt-2">Articles</p>
                     {(row.items?.length ? row.items : []).map((i, idx) => (
                         <div key={i.id || idx} className="rounded-lg border border-slate-100 dark:border-slate-800 px-3 py-2 text-xs">
-                            <div className="font-semibold">{i.article_ref || '—'} — {i.description}</div>
-                            <div className="text-slate-500 mt-0.5">{i.quantity} {i.unit || ''} × {formatMontant(i.unit_price)} = <strong>{formatMontant(i.total)}</strong></div>
+                            <div className="font-semibold">{i.article_ref || 'ÔÇö'} ÔÇö {i.description}</div>
+                            <div className="text-slate-500 mt-0.5">{i.quantity} {i.unit || ''} ├ù {formatMontant(i.unit_price)} = <strong>{formatMontant(i.total)}</strong></div>
                         </div>
                     ))}
                 </div>
@@ -215,26 +215,26 @@ function FormPanel({
                                 <Field label="Date">
                                     <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                                 </Field>
-                                <Field label="N° B-A">
+                                <Field label="N┬░ B-A">
                                     <input type="text" readOnly value={currentRef} className={readOnlyClass} />
                                 </Field>
                                 <Field label="Nom Fournisseur" className="sm:col-span-2 xl:col-span-1">
                                     <select required value={form.supplier_id} onChange={(e) => onChange('supplier_id', e.target.value)} className={inputClass}>
-                                        <option value="">—</option>
+                                        <option value="">ÔÇö</option>
                                         {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="N° Frns">
-                                    <input type="text" value={form.bc_number} onChange={(e) => onChange('bc_number', e.target.value)} placeholder="N° Frns" className={inputClass} />
+                                <Field label="N┬░ Frns">
+                                    <input type="text" value={form.bc_number} onChange={(e) => onChange('bc_number', e.target.value)} placeholder="N┬░ Frns" className={inputClass} />
                                 </Field>
-                                <Field label="Client Livré">
+                                <Field label="Client Livr├®">
                                     <select
                                         value={form.client_livre}
                                         disabled
                                         className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
                                         title="Indisponible"
                                     >
-                                        <option value="">—</option>
+                                        <option value="">ÔÇö</option>
                                         {clients.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
                                     </select>
                                 </Field>
@@ -249,12 +249,12 @@ function FormPanel({
                                         className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
                                     />
                                 </Field>
-                                <Field label="Type Rég">
+                                <Field label="Type R├®g">
                                     <select value={form.reglement} onChange={(e) => onChange('reglement', e.target.value)} className={inputClass}>
-                                        {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || '—'}</option>)}
+                                        {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || 'ÔÇö'}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Échéance">
+                                <Field label="├ëch├®ance">
                                     <div className="relative flex items-center">
                                         <input
                                             type="number"
@@ -302,7 +302,7 @@ function FormPanel({
                                 <table className="w-full text-sm min-w-[860px]">
                                     <thead>
                                         <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                                            {['Réf', 'Désignation', 'U', 'Qté', 'P/U', 'S/Total', ''].map((h) => (
+                                            {['R├®f', 'D├®signation', 'U', 'Qt├®', 'P/U', 'S/Total', ''].map((h) => (
                                                 <th key={h || 'act'} className="px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center whitespace-nowrap">{h}</th>
                                             ))}
                                         </tr>
@@ -315,7 +315,7 @@ function FormPanel({
                                                         type="text"
                                                         value={line.article_ref}
                                                         onChange={(e) => updateLine(line.key, { article_ref: e.target.value, product_id: '' })}
-                                                        placeholder="Réf"
+                                                        placeholder="R├®f"
                                                         className={tableInput}
                                                     />
                                                 </td>
@@ -324,13 +324,13 @@ function FormPanel({
                                                         type="text"
                                                         value={line.description}
                                                         onChange={(e) => updateLine(line.key, { description: e.target.value })}
-                                                        placeholder="Désignation"
+                                                        placeholder="D├®signation"
                                                         className={`${tableInput} text-left`}
                                                     />
                                                 </td>
                                                 <td className="px-2 py-1.5 w-[72px]">
                                                     <select value={line.unit} onChange={(e) => updateLine(line.key, { unit: e.target.value })} className={tableInput}>
-                                                        {UNIT_OPTIONS.map((v) => <option key={v || 'u'} value={v}>{v || '—'}</option>)}
+                                                        {UNIT_OPTIONS.map((v) => <option key={v || 'u'} value={v}>{v || 'ÔÇö'}</option>)}
                                                     </select>
                                                 </td>
                                                 <td className="px-2 py-1.5 w-[80px]">
@@ -390,7 +390,7 @@ export default function BonAchatsPage() {
     const [rows, setRows] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [clients, setClients] = useState([]);
-    const [meta, setMeta] = useState({ next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
+    const [meta, setMeta] = useState({ next_ref: 'ÔÇö', date: 'ÔÇö', total_reglements: 0, reliquat: 0 });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -428,7 +428,7 @@ export default function BonAchatsPage() {
         ])
             .then(([ordersRes, suppliersRes, clientsRes]) => {
                 setRows(ordersRes.data.data ?? []);
-                setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
+                setMeta(ordersRes.data.meta ?? { next_ref: 'ÔÇö', date: 'ÔÇö', total_reglements: 0, reliquat: 0 });
                 setSuppliers(suppliersRes.data.data ?? []);
                 setClients(clientsRes.data.data ?? []);
             })
@@ -507,7 +507,7 @@ export default function BonAchatsPage() {
     };
 
     const handleDelete = async (row) => {
-        if (!window.confirm(`Supprimer le bon « ${row.reference} » ?`)) return;
+        if (!window.confirm(`Supprimer le bon ┬½ ${row.reference} ┬╗ ?`)) return;
         try {
             await api.delete(`/purchase-orders/${row.id}`);
             if (editingId === row.id) closeModal();
@@ -524,11 +524,11 @@ export default function BonAchatsPage() {
 
         const validLines = lines.filter((l) => l.description?.trim());
         if (!validLines.length) {
-            setError('Ajoutez au moins un article avec une désignation');
+            setError('Ajoutez au moins un article avec une d├®signation');
             return;
         }
         if (!form.supplier_id) {
-            setError('Sélectionnez un fournisseur');
+            setError('S├®lectionnez un fournisseur');
             return;
         }
 
@@ -580,7 +580,7 @@ export default function BonAchatsPage() {
             openPrintable(rows[0]);
             return;
         }
-        window.alert('Sélectionnez un bon dans le tableau pour l\'imprimer.');
+        window.alert('S├®lectionnez un bon dans le tableau pour l\'imprimer.');
     };
 
     const currentRef = editingId
@@ -625,7 +625,7 @@ export default function BonAchatsPage() {
                             <Package className="w-4 h-4" />
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Qté</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Qt├®</p>
                             <p className="text-base font-bold tabular-nums leading-tight text-emerald-700 dark:text-emerald-300">
                                 {totalQteBons.toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                             </p>
@@ -664,7 +664,7 @@ export default function BonAchatsPage() {
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                                {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Client Livré', 'Ville', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
+                                {['Date', 'N┬░ B-A', 'Fournisseur', 'N┬░ Frns', 'Client Livr├®', 'Ville', 'Qt├® totale', 'Total', '├ëch├®ance', 'Actions'].map((h) => (
                                     <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}
                             </tr>
@@ -685,17 +685,17 @@ export default function BonAchatsPage() {
                                     >
                                         <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.order_date}</td>
                                         <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-orange-400">{row.reference}</td>
-                                        <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center font-mono text-xs text-slate-600 dark:text-slate-300">{row.bc_number || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.client_livre || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.city || '—'}</td>
+                                        <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur || 'ÔÇö'}</td>
+                                        <td className="px-4 py-2.5 text-center font-mono text-xs text-slate-600 dark:text-slate-300">{row.bc_number || 'ÔÇö'}</td>
+                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.client_livre || 'ÔÇö'}</td>
+                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.city || 'ÔÇö'}</td>
                                         <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
                                             {orderTotalQuantity(row).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                                         </td>
                                         <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-brand-navy dark:text-orange-400">{formatMontantDisplay(row.subtotal ?? row.montant)}</td>
                                         <td className="px-4 py-2.5 text-center">
                                             <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
-                                                {row.echeance || '—'}
+                                                {row.echeance || 'ÔÇö'}
                                             </span>
                                         </td>
                                         <td className="px-4 py-2.5">
@@ -710,7 +710,7 @@ export default function BonAchatsPage() {
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan={10} className="px-4 py-12 text-center text-slate-400">Aucun bon d'achat — cliquez sur Ajouter</td></tr>
+                                <tr><td colSpan={10} className="px-4 py-12 text-center text-slate-400">Aucun bon d'achat ÔÇö cliquez sur Ajouter</td></tr>
                             )}
                         </tbody>
                     </table>

@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\StockApiController;
 use App\Http\Controllers\Api\SupplierInvoiceApiController;
 use App\Http\Controllers\Api\SupplierPaymentApiController;
 use App\Http\Controllers\Api\QuoteApiController;
+use App\Http\Controllers\Api\RawMaterialStockApiController;
 use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\SupplierApiController;
 use App\Http\Controllers\Api\TaskApiController;
@@ -50,6 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('client-payments/{client_payment}', [ClientPaymentApiController::class, 'destroy']);
     Route::get('client-orders/balance', [ClientOrderApiController::class, 'balance']);
     Route::apiResource('client-orders', ClientOrderApiController::class)->only(['index', 'show']);
+    Route::get('raw-material-stock/meta', [RawMaterialStockApiController::class, 'meta']);
+    Route::get('raw-material-stock', [RawMaterialStockApiController::class, 'index']);
+    Route::post('raw-material-stock', [RawMaterialStockApiController::class, 'store']);
+
     Route::apiResource('quotes', QuoteApiController::class);
     Route::post('quotes/{quote}/send', [QuoteApiController::class, 'send']);
     Route::post('quotes/{quote}/validate', [QuoteApiController::class, 'validateQuote']);

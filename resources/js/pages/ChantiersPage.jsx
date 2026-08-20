@@ -38,10 +38,10 @@ export default function ChantiersPage() {
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Recherche avancée..." className="input-field pl-10" />
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card">
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[data.data?.length]}>
+            <div className="glass-card rounded-2xl shadow-card">
+                <ScrollAreaWithArrows variant="table" deps={[data.data?.length]}>
                 <table className="w-full text-sm">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
+                    <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/95 text-xs font-bold uppercase text-slate-500 backdrop-blur-sm">
                         <tr>
                             <th className="px-5 py-3 text-left">N° Chantier</th>
                             <th className="px-5 py-3 text-left">Nom</th>

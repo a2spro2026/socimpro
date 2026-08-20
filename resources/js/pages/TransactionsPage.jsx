@@ -418,7 +418,7 @@ export default function TransactionsPage() {
                     </div>
                 )}
 
-                <ScrollAreaWithArrows>
+                <ScrollAreaWithArrows variant="table">
                     <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid xl:grid-cols-[112px_0.55fr_0.32fr_0.3fr_0.42fr_0.95fr_2.65fr_auto_auto] gap-2 items-end min-w-[980px]">
                         <Field label="Date" compact>
                             <input type="date" required value={form.transaction_date} onChange={(e) => set('transaction_date', e.target.value)} className={`${inputCompact} text-[12px] py-1.5`} />
@@ -489,7 +489,7 @@ export default function TransactionsPage() {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
                 <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-indigo-900 border-b border-white/10 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Transaction et Charges</h3>
                     <button type="button" onClick={load} disabled={loading} className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Actualiser">
@@ -497,10 +497,9 @@ export default function TransactionsPage() {
                     </button>
                 </div>
 
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[900px]">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {['Date', 'Bénéficiaire', 'Montant', 'Coffre', 'Type', 'Statut', 'Motif', 'Actions'].map((h) => (
                                     <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}

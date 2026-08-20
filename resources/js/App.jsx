@@ -26,6 +26,11 @@ import FactureAchatsPage from './pages/FactureAchatsPage';
 import FactureVentesPage from './pages/FactureVentesPage';
 import SupplierBalancePage from './pages/SupplierBalancePage';
 import UtilisateursPage from './pages/UtilisateursPage';
+import StockPage from './pages/StockPage';
+import RapportsPage from './pages/RapportsPage';
+import EtatPaiementPage from './pages/clients/EtatPaiementPage';
+import ReleveComptePage from './pages/ReleveComptePage';
+import FacturationBalancePage from './pages/facturation/FacturationBalancePage';
 
 function ProtectedRoute({ children }) {
     const { user, loading } = useAuth();
@@ -58,7 +63,7 @@ function AppRoutes() {
                 <Route path="fournisseurs/bons-achats" element={<BonAchatsPage />} />
                 <Route path="fournisseurs/bons-commande" element={<Navigate to="/fournisseurs/bons-achats" replace />} />
                 <Route path="fournisseurs/balance" element={<SupplierBalancePage />} />
-                <Route path="fournisseurs/releve-compte" element={<ModulePage />} />
+                <Route path="fournisseurs/releve-compte" element={<ReleveComptePage mode="supplier" />} />
 
                 {/* Client */}
                 <Route path="clients/fiches" element={<FicheClientPage />} />
@@ -72,7 +77,7 @@ function AppRoutes() {
                 <Route path="clients/factures-ventes" element={<Navigate to="/facturation/factures-ventes" replace />} />
                 <Route path="clients/reglements-factures" element={<ModulePage />} />
                 <Route path="clients/balance" element={<ClientBalancePage />} />
-                <Route path="clients/releve-compte" element={<ModulePage />} />
+                <Route path="clients/releve-compte" element={<ReleveComptePage mode="client" />} />
 
                 {/* Facturation */}
                 <Route path="facturation/factures-achats" element={<FactureAchatsPage />} />
@@ -81,12 +86,12 @@ function AppRoutes() {
                 <Route path="facturation/reglement" element={<ReglementFournisseurPage />} />
                 <Route path="facturation/factures-ventes" element={<FactureVentesPage />} />
                 <Route path="facturation/reglements" element={<ReglementClientPage />} />
-                <Route path="facturation/balance" element={<ModulePage />} />
+                <Route path="facturation/balance" element={<FacturationBalancePage />} />
                 <Route path="fournisseurs/reglements-achats" element={<ReglementFournisseurPage />} />
 
                 {/* Stock */}
                 <Route path="stock/produits" element={<Navigate to="/stock/matiere-premiere" replace />} />
-                <Route path="stock/mouvements" element={<ModulePage />} />
+                <Route path="stock/mouvements" element={<StockPage />} />
                 <Route path="stock/bon-production" element={<BonProductionPage />} />
                 <Route path="stock/etat-production" element={<Navigate to="/stock/produit-fini" replace />} />
                 <Route path="stock/matiere-premiere" element={<StockMatierePremierePage />} />
@@ -100,11 +105,12 @@ function AppRoutes() {
 
                 {/* Personnel */}
                 <Route path="personnel/fiches" element={<GenericListPage title="Fiche Personnel" subtitle="Gestion des employés" endpoint="/employees" columns={employeeCols} />} />
-                <Route path="personnel/etat-paiement" element={<ModulePage />} />
+                <Route path="personnel/etat-paiement" element={<EtatPaiementPage />} />
 
                 {/* Suivi Monétaire */}
                 <Route path="monetaire/transactions" element={<TransactionsPage />} />
                 <Route path="monetaire/charges" element={<ChargesPage />} />
+                <Route path="monetaire/rapports" element={<RapportsPage />} />
                 <Route path="monetaire/salaires" element={<ModulePage />} />
                 <Route path="monetaire/tresorerie" element={<ModulePage />} />
 

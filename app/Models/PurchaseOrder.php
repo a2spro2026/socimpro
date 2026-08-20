@@ -11,7 +11,7 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'reference', 'doc_type', 'bc_number', 'order_date', 'supplier_id', 'chantier_id',
         'designation', 'article_ref', 'consistance', 'unit', 'unit_price', 'quantity', 'subtotal',
-        'reglement', 'echeance', 'city', 'client_livre', 'chauffeur', 'matricule',
+        'reglement', 'echeance', 'city', 'client_livre', 'destination', 'chauffeur', 'matricule',
         'address', 'chantier_type', 'responsible_name',
         'total_ht', 'tva', 'total_ttc', 'montant_paye', 'payment_action', 'status', 'notes', 'user_id',
     ];

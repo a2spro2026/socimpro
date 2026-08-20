@@ -126,7 +126,8 @@ function FormPanel({
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <ScrollAreaWithArrows variant="table">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 min-w-[640px]">
                             <Field label="Date">
                                 <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                             </Field>
@@ -143,6 +144,7 @@ function FormPanel({
                                 <input type="text" value={form.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Ville livraison" className={inputClass} />
                             </Field>
                         </div>
+                        </ScrollAreaWithArrows>
 
                         <div>
                             <div className="flex items-center justify-between mb-2">
@@ -152,10 +154,9 @@ function FormPanel({
                                 </button>
                             </div>
                             <div className="rounded-lg border border-slate-200 dark:border-slate-700">
-                                <ScrollAreaWithArrows>
+                                <ScrollAreaWithArrows variant="table">
                                 <table className="w-full text-xs min-w-[640px]">
-                                    <thead>
-                                        <tr className="bg-slate-50 dark:bg-slate-800/80">
+                                    <thead className="sticky top-0 z-10">                                        <tr className="bg-slate-50 dark:bg-slate-800/80">
                                             {['Réf', 'Désignation', 'Qte', 'Prix/U', 'Sous-Total', ''].map((h) => (
                                                 <th key={h || 'x'} className="px-2 py-2 font-bold uppercase text-slate-500">{h}</th>
                                             ))}
@@ -481,14 +482,13 @@ export default function BonCommandePage() {
                 </button>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
                 <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-indigo-900 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau des Bons de Commande</h3>
                 </div>
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[flatRows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[flatRows.length, loading]}>
                     <table className="w-full text-sm min-w-[1100px]">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {headers.map((h) => (
                                     <th key={h || 'act'} className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">
                                         {h}

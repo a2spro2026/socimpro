@@ -292,7 +292,8 @@ export default function FicheFournisseurPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 xl:grid-cols-[70px_70px_1.1fr_0.8fr_1fr_1fr_0.65fr_0.7fr_0.75fr_0.85fr] gap-2.5 items-end">
+                <ScrollAreaWithArrows variant="table">
+                <div className="grid grid-cols-2 sm:grid-cols-5 xl:grid-cols-[70px_70px_1.1fr_0.8fr_1fr_1fr_0.65fr_0.7fr_0.75fr_0.85fr] gap-2.5 items-end min-w-[1100px]">
                     <Field label="Date">
                         <input type="text" readOnly value={meta.date} className={readOnlyClass} />
                     </Field>
@@ -347,6 +348,7 @@ export default function FicheFournisseurPage() {
                         />
                     </Field>
                 </div>
+                </ScrollAreaWithArrows>
 
                 <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button type="submit" disabled={saving} className="btn-primary text-sm">
@@ -376,14 +378,13 @@ export default function FicheFournisseurPage() {
                 </div>
             </form>
 
-            <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                <div className="px-5 py-3.5 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 border-b border-white/10">
+            <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
+                <div className="px-5 py-3.5 rounded-t-2xl bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 border-b border-white/10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wide">Liste des fournisseurs</h3>
                 </div>
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[960px]">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="sticky top-0 z-10">                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {['ID', 'Nom Fournisseur', 'Contact', 'Adresse', 'Ville', 'Règlement', 'Échéance', 'Solde Initial', 'Solde', 'Actions'].map((h) => (
                                     <th
                                         key={h}

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, Send, CheckCircle, Plus, Trash2, Printer, ChevronUp, ChevronDown } from 'lucide-react';
+import { Save, ArrowLeft, Send, CheckCircle, Plus, Trash2, Printer } from 'lucide-react';
 import api from '../../lib/api';
 import DesignationPicker from '../../components/DesignationPicker';
 import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
@@ -53,21 +53,6 @@ export default function DevisFormPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-
-    const linesScrollRef = useRef(null);
-    const [canScrollUp, setCanScrollUp] = useState(false);
-    const [canScrollDown, setCanScrollDown] = useState(false);
-
-    const updateScrollState = () => {
-        const el = linesScrollRef.current;
-        if (!el) return;
-        setCanScrollUp(el.scrollTop > 4);
-        setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
-    };
-
-    useEffect(() => {
-        updateScrollState();
-    }, [lines.length]);
 
     const totalHt = useMemo(
         () => lines.reduce((sum, line) => sum + lineSubtotal(line), 0),
@@ -148,13 +133,6 @@ export default function DevisFormPage() {
         });
     };
     const removeLine = (index) => setLines((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
-
-    const scrollLines = (direction) => {
-        const el = linesScrollRef.current;
-        if (!el) return;
-        el.scrollBy({ top: direction * 52, behavior: 'smooth' });
-        requestAnimationFrame(updateScrollState);
-    };
 
     const handleClientChange = (clientId) => {
         const client = clients.find((c) => String(c.id) === String(clientId));
@@ -310,7 +288,7 @@ export default function DevisFormPage() {
                 Retour à la liste
             </button>
 
-            <form onSubmit={handleSubmit} className="glass-card p-4 lg:p-5 shadow-card border border-slate-200/60 dark:border-slate-700/60 flex flex-col flex-1 min-h-0 overflow-hidden">
+            <form onSubmit={handleSubmit} className="glass-card p-4 lg:p-5 shadow-card border border-slate-200/60 dark:border-slate-700/60 flex flex-col flex-1 min-h-0">
                 {error && (
                     <div className="mb-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border border-red-100 dark:border-red-800 shrink-0">{error}</div>
                 )}
@@ -323,7 +301,7 @@ export default function DevisFormPage() {
                     </div>
                 )}
 
-                <ScrollAreaWithArrows className="shrink-0">
+                <ScrollAreaWithArrows variant="table" className="shrink-0">
                     <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid xl:grid-cols-[92px_72px_minmax(100px,0.9fr)_minmax(68px,0.6fr)_0.75fr_96px_0.75fr_80px] gap-2 items-end min-w-[900px]">
                         <Field label="Date" compact>
                             <input type="text" readOnly value={meta.date} className={readOnlyCompact} />
@@ -372,9 +350,9 @@ export default function DevisFormPage() {
                 </ScrollAreaWithArrows>
 
                 <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-col flex-1 min-h-0">
-                    <div className="flex shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">
-                        <div className="flex-1 min-w-0 flex flex-col">
-                            <table className="w-full text-sm table-fixed">
+                    <div className="shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <ScrollAreaWithArrows variant="table" className="flex-1 min-h-0" deps={[lines.length]}>
+                            <table className="w-full text-sm table-fixed min-w-[720px]">
                                 <colgroup>
                                     <col className="w-[23%]" />
                                     <col className="w-[32%]" />
@@ -385,7 +363,7 @@ export default function DevisFormPage() {
                                     <col className="w-[13%]" />
                                     <col className="w-8" />
                                 </colgroup>
-                                <thead>
+                                <thead className="sticky top-0 z-10">
                                     <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                                         {['Type Travaux', 'Désignation Travaux', 'Consistance', 'Unité', 'Qté', 'Prix HT', 'Sous-Total HT'].map((h) => (
                                             <th
@@ -413,111 +391,70 @@ export default function DevisFormPage() {
                                         </th>
                                     </tr>
                                 </thead>
-                            </table>
-
-                            <div
-                                ref={linesScrollRef}
-                                onScroll={updateScrollState}
-                                className="h-[min(360px,48vh)] overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                            >
-                                <table className="w-full text-sm table-fixed">
-                                    <colgroup>
-                                        <col className="w-[23%]" />
-                                        <col className="w-[32%]" />
-                                        <col className="w-[9%]" />
-                                        <col className="w-[8%]" />
-                                        <col className="w-[7%]" />
-                                        <col className="w-[8%]" />
-                                        <col className="w-[13%]" />
-                                        <col className="w-8" />
-                                    </colgroup>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {lines.map((line, index) => {
-                                            const sub = lineSubtotal(line);
-                                            const hasTypeTravaux = Boolean(line.type_travaux?.trim());
-                                            return (
-                                                <tr key={line._key} className="hover:bg-violet-50/30 dark:hover:bg-slate-800/30">
-                                                    <td className="px-2 py-1.5">
-                                                        <input
-                                                            type="text"
-                                                            disabled={isValidated}
-                                                            value={line.type_travaux}
-                                                            onChange={(e) => updateLine(index, 'type_travaux', e.target.value)}
-                                                            placeholder="Type Travaux"
-                                                            className={isValidated
-                                                                ? `${readOnlyClass}${hasTypeTravaux ? ` ${typeTravauxFilledClass}` : ''}`
-                                                                : `${lineInputClass}${hasTypeTravaux ? ` ${typeTravauxFilledClass}` : ''}`}
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {lines.map((line, index) => {
+                                        const sub = lineSubtotal(line);
+                                        const hasTypeTravaux = Boolean(line.type_travaux?.trim());
+                                        return (
+                                            <tr key={line._key} className="hover:bg-violet-50/30 dark:hover:bg-slate-800/30">
+                                                <td className="px-2 py-1.5">
+                                                    <input
+                                                        type="text"
+                                                        disabled={isValidated}
+                                                        value={line.type_travaux}
+                                                        onChange={(e) => updateLine(index, 'type_travaux', e.target.value)}
+                                                        placeholder="Type Travaux"
+                                                        className={isValidated
+                                                            ? `${readOnlyClass}${hasTypeTravaux ? ` ${typeTravauxFilledClass}` : ''}`
+                                                            : `${lineInputClass}${hasTypeTravaux ? ` ${typeTravauxFilledClass}` : ''}`}
+                                                    />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                    {isValidated ? (
+                                                        <input type="text" readOnly value={line.designation} className={readOnlyClass} />
+                                                    ) : (
+                                                        <DesignationPicker
+                                                            products={products}
+                                                            value={line.designation}
+                                                            onSelect={(product) => handleDesignationSelect(index, product)}
+                                                            placeholder="— Sélectionner travaux —"
                                                         />
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        {isValidated ? (
-                                                            <input type="text" readOnly value={line.designation} className={readOnlyClass} />
-                                                        ) : (
-                                                            <DesignationPicker
-                                                                products={products}
-                                                                value={line.designation}
-                                                                onSelect={(product) => handleDesignationSelect(index, product)}
-                                                                placeholder="— Sélectionner travaux —"
-                                                            />
-                                                        )}
-                                                    </td>
-                                                    <td className="px-1 py-1.5">
-                                                        <select disabled={isValidated} value={line.consistance} onChange={(e) => updateLine(index, 'consistance', e.target.value)} className={lineInputClass}>
-                                                            {CONSISTANCE_OPTIONS.map((v) => <option key={v || 'e'} value={v}>{v || '—'}</option>)}
-                                                        </select>
-                                                    </td>
-                                                    <td className="px-1 py-1.5">
-                                                        <select disabled={isValidated} value={line.unit} onChange={(e) => updateLine(index, 'unit', e.target.value)} className={lineInputClass}>
-                                                            {UNIT_OPTIONS.map((v) => <option key={v || 'e'} value={v}>{v || '—'}</option>)}
-                                                        </select>
-                                                    </td>
-                                                    <td className="px-1 py-1.5">
-                                                        <input type="number" step="0.001" min="0.001" disabled={isValidated} value={line.quantity} onChange={(e) => updateLine(index, 'quantity', e.target.value)} className={lineInputClass} />
-                                                    </td>
-                                                    <td className="px-1 py-1.5">
-                                                        <input type="number" step="0.01" min="0" disabled={isValidated} value={line.unit_price} onChange={(e) => updateLine(index, 'unit_price', e.target.value)} className={lineInputClass} placeholder="0.00" />
-                                                    </td>
-                                                    <td className="px-1 py-1.5 text-center">
-                                                        <span className={subtotalFrameClass}>
-                                                            {sub ? `${Math.round(sub).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}.Fcfa` : '—'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="w-8 px-0.5 py-1.5 text-center">
-                                                        {!isValidated && lines.length > 1 && (
-                                                            <button type="button" title="Supprimer la ligne" onClick={() => removeLine(index)} className="p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors">
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col w-9 shrink-0 bg-slate-200 dark:bg-slate-700 border-l border-slate-300 dark:border-slate-600">
-                            <button
-                                type="button"
-                                title="Défiler vers le haut"
-                                onClick={() => scrollLines(-1)}
-                                disabled={!canScrollUp}
-                                className="h-10 flex items-center justify-center text-slate-600 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-35 disabled:cursor-not-allowed border-b border-slate-300 dark:border-slate-600 transition-colors"
-                            >
-                                <ChevronUp className="w-5 h-5" strokeWidth={2.5} />
-                            </button>
-                            <div className="flex-1 bg-slate-200 dark:bg-slate-700" />
-                            <button
-                                type="button"
-                                title="Défiler vers le bas"
-                                onClick={() => scrollLines(1)}
-                                disabled={!canScrollDown}
-                                className="h-10 flex items-center justify-center text-slate-600 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronDown className="w-5 h-5" strokeWidth={2.5} />
-                            </button>
-                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-1 py-1.5">
+                                                    <select disabled={isValidated} value={line.consistance} onChange={(e) => updateLine(index, 'consistance', e.target.value)} className={lineInputClass}>
+                                                        {CONSISTANCE_OPTIONS.map((v) => <option key={v || 'e'} value={v}>{v || '—'}</option>)}
+                                                    </select>
+                                                </td>
+                                                <td className="px-1 py-1.5">
+                                                    <select disabled={isValidated} value={line.unit} onChange={(e) => updateLine(index, 'unit', e.target.value)} className={lineInputClass}>
+                                                        {UNIT_OPTIONS.map((v) => <option key={v || 'e'} value={v}>{v || '—'}</option>)}
+                                                    </select>
+                                                </td>
+                                                <td className="px-1 py-1.5">
+                                                    <input type="number" step="0.001" min="0.001" disabled={isValidated} value={line.quantity} onChange={(e) => updateLine(index, 'quantity', e.target.value)} className={lineInputClass} />
+                                                </td>
+                                                <td className="px-1 py-1.5">
+                                                    <input type="number" step="0.01" min="0" disabled={isValidated} value={line.unit_price} onChange={(e) => updateLine(index, 'unit_price', e.target.value)} className={lineInputClass} placeholder="0.00" />
+                                                </td>
+                                                <td className="px-1 py-1.5 text-center">
+                                                    <span className={subtotalFrameClass}>
+                                                        {sub ? `${Math.round(sub).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}.Fcfa` : '—'}
+                                                    </span>
+                                                </td>
+                                                <td className="w-8 px-0.5 py-1.5 text-center">
+                                                    {!isValidated && lines.length > 1 && (
+                                                        <button type="button" title="Supprimer la ligne" onClick={() => removeLine(index)} className="p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-colors">
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </ScrollAreaWithArrows>
                     </div>
 
                     <div className="shrink-0 mt-4 flex justify-end pr-10">

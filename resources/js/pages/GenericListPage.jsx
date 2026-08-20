@@ -28,10 +28,10 @@ export default function GenericListPage({ title, subtitle, endpoint, columns }) 
                     <div className="w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : (
-                <div className="glass-card overflow-hidden shadow-card">
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[data.data?.length, loading]}>
+                <div className="glass-card rounded-2xl shadow-card">
+                    <ScrollAreaWithArrows variant="table" deps={[data.data?.length, loading]}>
                     <table className="w-full text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
+                        <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/95 text-xs font-bold uppercase text-slate-500 backdrop-blur-sm">
                             <tr>{columns?.map((c) => <th key={c.key} className="px-5 py-3 text-left">{c.label}</th>)}</tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

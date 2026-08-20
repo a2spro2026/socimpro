@@ -311,9 +311,9 @@ function StockAlertsModal({ open, onClose, alerts, loading }) {
                         </button>
                     </div>
 
-                    <ScrollAreaWithArrows className="flex-1 min-h-0" maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                    <ScrollAreaWithArrows variant="table" className="flex-1 min-h-0" deps={[rows.length, loading]}>
                         <table className="w-full text-sm min-w-[640px]">
-                            <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 <tr>
                                     {['Réf', 'Produit', 'Stock', 'Seuil', 'Unité', 'État'].map((h) => (
                                         <th

@@ -30,10 +30,10 @@ export default function AchatsPage() {
                 <button className="btn-primary"><Plus className="w-4 h-4" /> Nouveau bon d'achat</button>
             </div>
 
-            <div className="glass-card overflow-hidden shadow-card">
-                <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[orders.data?.length]}>
+            <div className="glass-card rounded-2xl shadow-card">
+                <ScrollAreaWithArrows variant="table" deps={[orders.data?.length]}>
                 <table className="w-full text-sm">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
+                    <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/95 text-xs font-bold uppercase text-slate-500 backdrop-blur-sm">
                         <tr>
                             <th className="px-5 py-3 text-left">N° Bon</th>
                             <th className="px-5 py-3 text-left">Date</th>

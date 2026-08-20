@@ -19,7 +19,7 @@ export default function ReportTable({
     const grayHeader = headerStyle === 'gray';
 
     return (
-        <div className="report-table rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900 shadow-lg overflow-hidden">
+        <div className="report-table rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900 shadow-lg">
             <div className={`flex items-center justify-between gap-3 px-5 py-3.5 bg-gradient-to-r ${accent}`}>
                 <div className="flex items-center gap-2.5 min-w-0">
                     {Icon && <Icon className="w-5 h-5 text-white shrink-0" strokeWidth={2} />}
@@ -32,12 +32,11 @@ export default function ReportTable({
                 )}
             </div>
 
-            <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows?.length, loading]}>
+            <ScrollAreaWithArrows variant="table" deps={[rows?.length, loading]}>
                 <table className="w-full text-sm min-w-[640px]">
-                    <thead>
-                        <tr className={grayHeader
+                    <thead className="sticky top-0 z-10">                        <tr className={grayHeader
                             ? 'bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600'
-                            : 'bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700'
+                            : 'bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm'
                         }>
                             {columns.map((col) => (
                                 <th

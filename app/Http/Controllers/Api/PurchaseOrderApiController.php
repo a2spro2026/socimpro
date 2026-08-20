@@ -21,6 +21,7 @@ class PurchaseOrderApiController extends Controller
                 $inner->where('reference', 'like', "%{$s}%")
                     ->orWhere('designation', 'like', "%{$s}%");
             }))
+            ->when($request->destination, fn ($q, $d) => $q->where('destination', $d))
             ->latest('order_date');
 
         if ($request->boolean('all')) {
@@ -170,6 +171,7 @@ class PurchaseOrderApiController extends Controller
                 'echeance' => $validated['echeance'] ?? null,
                 'city' => $validated['city'] ?? null,
                 'client_livre' => $validated['client_livre'] ?? null,
+                'destination' => $validated['destination'] ?? null,
                 'chauffeur' => $validated['chauffeur'] ?? null,
                 'matricule' => $validated['matricule'] ?? null,
                 'designation' => $first['description'] ?? null,
@@ -216,6 +218,7 @@ class PurchaseOrderApiController extends Controller
                 'echeance' => array_key_exists('echeance', $validated) ? $validated['echeance'] : $purchaseOrder->echeance,
                 'city' => array_key_exists('city', $validated) ? $validated['city'] : $purchaseOrder->city,
                 'client_livre' => array_key_exists('client_livre', $validated) ? $validated['client_livre'] : $purchaseOrder->client_livre,
+                'destination' => array_key_exists('destination', $validated) ? $validated['destination'] : $purchaseOrder->destination,
                 'chauffeur' => array_key_exists('chauffeur', $validated) ? $validated['chauffeur'] : $purchaseOrder->chauffeur,
                 'matricule' => array_key_exists('matricule', $validated) ? $validated['matricule'] : $purchaseOrder->matricule,
                 'designation' => $first['description'] ?? $purchaseOrder->designation,
@@ -261,6 +264,7 @@ class PurchaseOrderApiController extends Controller
             'echeance' => 'nullable|string|max:20',
             'city' => 'nullable|string|max:255',
             'client_livre' => 'nullable|string|max:255',
+            'destination' => 'nullable|in:cru,divers',
             'chauffeur' => 'nullable|string|max:255',
             'matricule' => 'nullable|string|max:50',
             'status' => 'nullable|in:en_attente,valide,annule,recu_partiel,recu',
@@ -405,6 +409,7 @@ class PurchaseOrderApiController extends Controller
             'echeance' => $order->echeance,
             'city' => $order->city,
             'client_livre' => $order->client_livre,
+            'destination' => $order->destination,
             'chauffeur' => $order->chauffeur,
             'matricule' => $order->matricule,
             'status' => $order->status,

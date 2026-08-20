@@ -7,6 +7,8 @@ import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
+const BANQUE_OPTIONS = ['Attijariwafa', 'BMCE', 'Banque Populaire', 'CIH', 'BMCI', 'Crédit du Maroc', 'CFG', 'Société Générale'];
+const isEspReglement = (value) => (value || '').trim().toLowerCase() === 'esp';
 const SOLDE_INITIAL_ID = 0;
 const STATUT_OPTIONS = [
     { value: 'Inst', label: 'Inst', className: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600' },
@@ -160,7 +162,7 @@ function ViewModal({ row, onClose }) {
                     <div className="px-5 pb-5">
                         <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Allocations</p>
                         <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <ScrollAreaWithArrows deps={[row.allocations?.length]}>
+                            <ScrollAreaWithArrows variant="table" deps={[row.allocations?.length]}>
                             <table className="w-full text-xs">
                                 <thead><tr className="bg-slate-50 dark:bg-slate-800"><th className="px-2 py-1.5">Bon</th><th className="px-2 py-1.5">Montant</th><th className="px-2 py-1.5">Action</th></tr></thead>
                                 <tbody>
@@ -624,14 +626,13 @@ export default function ReglementClientPage() {
                     </div>
                 </form>
 
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-800 border-b border-white/10">
+                <div className="glass-card shadow-card border border-slate-200/60 dark:border-slate-700/60 rounded-2xl">
+                    <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-800 border-b border-white/10 rounded-t-2xl">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau de consultation</h3>
                     </div>
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[payments.length, loadingList]}>
+                    <ScrollAreaWithArrows variant="table" deps={[payments.length, loadingList]}>
                         <table className="w-full text-sm min-w-[1100px]">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     {['Réf', 'Date', 'Client', 'Type', 'Nom de Tiré', 'N°', 'Bnq', 'Date Décaiss', 'Montant', 'Statut', 'Action'].map((h) => (
                                         <th key={h} className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                     ))}
@@ -742,8 +743,8 @@ export default function ReglementClientPage() {
                 </div>
 
                 <div className="glass-card p-2.5 shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <ScrollAreaWithArrows>
-                    <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_72px_90px_minmax(110px,1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
+                    <ScrollAreaWithArrows variant="table">
+                    <div className="grid grid-cols-[100px_88px_minmax(140px,1.3fr)_minmax(140px,1.2fr)_90px_minmax(130px,1.1fr)_minmax(110px,1fr)_95px_100px_minmax(120px,1fr)] gap-1.5 items-end min-w-[1280px]">
                         <Field label="Date">
                             <input type="date" required value={form.payment_date} onChange={(e) => set('payment_date', e.target.value)} className={inputClass} />
                         </Field>
@@ -757,20 +758,25 @@ export default function ReglementClientPage() {
                             </select>
                         </Field>
                         <Field label="Type Rég">
-                            <select
+                            <input
+                                type="text"
+                                list="rc-type-reglement"
+                                maxLength={10}
                                 value={form.reglement}
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     setForm((f) => ({
                                         ...f,
                                         reglement: value,
-                                        ...(value === 'Esp' ? { numero: '', banque: '', nom_tire: '' } : {}),
+                                        ...(value.trim().toLowerCase() === 'esp' ? { numero: '', banque: '', nom_tire: '' } : {}),
                                     }));
                                 }}
+                                placeholder="Esp, Chq…"
                                 className={inputClass}
-                            >
-                                {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || '—'}</option>)}
-                            </select>
+                            />
+                            <datalist id="rc-type-reglement">
+                                {REGLEMENT_OPTIONS.filter(Boolean).map((v) => <option key={v} value={v} />)}
+                            </datalist>
                         </Field>
                         <Field label="N° régl">
                             <input
@@ -778,19 +784,24 @@ export default function ReglementClientPage() {
                                 value={form.numero}
                                 onChange={(e) => set('numero', e.target.value)}
                                 placeholder="N°"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
                         </Field>
                         <Field label="Banq">
                             <input
                                 type="text"
+                                list="rc-banque"
+                                maxLength={100}
                                 value={form.banque}
                                 onChange={(e) => set('banque', e.target.value)}
                                 placeholder="Banque"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
+                            <datalist id="rc-banque">
+                                {BANQUE_OPTIONS.map((v) => <option key={v} value={v} />)}
+                            </datalist>
                         </Field>
                         <Field label="Nom de Tiré">
                             <input
@@ -798,8 +809,8 @@ export default function ReglementClientPage() {
                                 value={form.nom_tire}
                                 onChange={(e) => set('nom_tire', e.target.value)}
                                 placeholder="Nom tiré"
-                                disabled={form.reglement === 'Esp'}
-                                className={form.reglement === 'Esp' ? readOnlyClass : inputClass}
+                                disabled={isEspReglement(form.reglement)}
+                                className={isEspReglement(form.reglement) ? readOnlyClass : inputClass}
                             />
                         </Field>
                         <Field label="Montant Régl">
@@ -817,14 +828,13 @@ export default function ReglementClientPage() {
             </form>
 
             {!editingId && (
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                    <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
+                <div className="glass-card shadow-card border border-slate-200/60 dark:border-slate-700/60 rounded-2xl">
+                    <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10 rounded-t-2xl">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Commande à Encaisser :</h3>
                     </div>
-                    <ScrollAreaWithArrows maxHeight="min(50vh, 480px)" deps={[orders.length, loading, form.client_id, selectedIds.length]}>
+                    <ScrollAreaWithArrows variant="table" deps={[orders.length, loading, form.client_id, selectedIds.length]}>
                         <table className="w-full text-sm min-w-[1100px]">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     {['N° Bon', 'Date Commande', 'Adresse Livraison', 'Montant Bon', 'Montant Payé', 'Solde', 'Sélection', 'Action'].map((h) => (
                                         <th key={h} className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                     ))}

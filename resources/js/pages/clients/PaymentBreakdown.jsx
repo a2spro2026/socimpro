@@ -63,10 +63,9 @@ export function PaymentBreakdown({ payments, compact = false, actions }) {
                 </span>
             </div>
 
-            <ScrollAreaWithArrows deps={[payments.length]}>
+            <ScrollAreaWithArrows variant="table" deps={[payments.length]}>
                 <table className="w-full text-xs">
-                    <thead>
-                        <tr className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-emerald-100 dark:border-emerald-900/30">
+                    <thead className="sticky top-0 z-10">                        <tr className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-emerald-100 dark:border-emerald-900/30">
                             {['Date', 'Réf°', 'Règlement', 'N°', 'Banque', 'Nom Tiré', 'Montant', ...(actions ? ['Actions'] : [])].map((h) => (
                                 <th key={h} className="px-3 py-2 font-bold text-center whitespace-nowrap">{h}</th>
                             ))}

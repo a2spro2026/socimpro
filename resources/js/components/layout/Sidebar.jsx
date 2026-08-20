@@ -36,8 +36,82 @@ function NavIcon({ icon: Icon, active, size = 'md' }) {
     );
 }
 
+function isItemActive(item, pathname) {
+    if (item.disabled) return false;
+    if (item.to && (pathname === item.to || pathname.startsWith(item.to + '/'))) return true;
+    return (item.children || []).some((child) => isItemActive(child, pathname));
+}
+
+function NestedNavGroup({ child, onClose, index }) {
+    const location = useLocation();
+    const disabled = !!child.disabled;
+    const nestedActive = !disabled && (child.children || []).some((c) => isItemActive(c, location.pathname));
+    const [open, setOpen] = useState(nestedActive);
+    const Icon = child.icon;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.04, duration: 0.25 }}
+            className={disabled ? 'opacity-40 grayscale pointer-events-none' : ''}
+        >
+            <button
+                type="button"
+                onClick={() => !disabled && setOpen(!open)}
+                disabled={disabled}
+                className={`sidebar-child-item w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 ${
+                    disabled
+                        ? 'text-slate-400 cursor-not-allowed'
+                        : nestedActive || open
+                            ? 'text-white'
+                            : 'text-blue-200/90 hover:bg-white/5 hover:text-white'
+                }`}
+            >
+                {Icon && (
+                    <Icon
+                        className={`sidebar-child-icon w-4 h-4 shrink-0 ${
+                            nestedActive ? 'text-brand-orange' : 'opacity-70'
+                        }`}
+                        strokeWidth={1.75}
+                    />
+                )}
+                <span className="flex-1 text-left truncate">{child.label}</span>
+                <motion.span
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    className="flex items-center justify-center w-4 h-4"
+                >
+                    <ChevronDown className="w-3 h-3 opacity-80" />
+                </motion.span>
+            </button>
+            <AnimatePresence initial={false}>
+                {!disabled && open && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <div className="ml-3 pl-2 border-l border-white/15 space-y-0.5 py-0.5">
+                            {child.children.map((sub, i) => (
+                                <NavChildItem key={sub.to || sub.label} child={sub} onClose={onClose} index={i} />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
 function NavChildItem({ child, onClose, index }) {
     const disabled = !!child.disabled;
+
+    if (child.children?.length) {
+        return <NestedNavGroup child={child} onClose={onClose} index={index} />;
+    }
 
     if (disabled) {
         return (
@@ -135,9 +209,7 @@ function DashboardLink({ item, onClose }) {
 function NavGroup({ group, onClose, index }) {
     const location = useLocation();
     const disabled = !!group.disabled;
-    const isChildActive = !disabled && group.children?.some(
-        (c) => !c.disabled && (location.pathname === c.to || location.pathname.startsWith(c.to + '/'))
-    );
+    const isChildActive = !disabled && (group.children || []).some((c) => isItemActive(c, location.pathname));
     const [open, setOpen] = useState(isChildActive);
     const accent = sectionColors[group.id] || 'from-white/10 to-white/5';
 
@@ -222,7 +294,7 @@ function NavGroup({ group, onClose, index }) {
                     >
                         <div className="mt-1.5 ml-4 pl-3 border-l-2 sidebar-tree-line space-y-0.5 py-1">
                             {group.children.map((child, i) => (
-                                <NavChildItem key={child.to} child={child} onClose={onClose} index={i} />
+                                <NavChildItem key={child.to || child.label} child={child} onClose={onClose} index={i} />
                             ))}
                         </div>
                     </motion.div>

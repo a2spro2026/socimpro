@@ -398,7 +398,7 @@ export default function EtatPaiementPage() {
                     </div>
                 )}
 
-                <ScrollAreaWithArrows>
+                <ScrollAreaWithArrows variant="table">
                     <div className="space-y-2">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-[110px_80px_minmax(105px,0.85fr)_minmax(88px,0.75fr)_96px_88px] gap-2 items-end min-w-[900px]">
                         <Field label="Date" compact>
@@ -492,15 +492,14 @@ export default function EtatPaiementPage() {
             </form>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60 min-w-0">
+                <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60 min-w-0">
                     <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-brand-navy to-indigo-800 border-b border-white/10">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">État d'exécution</h3>
                     </div>
 
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[rows.length, loading]}>
+                    <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
                         <table className="w-full text-sm table-fixed">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     <th className="px-2 py-3 w-9 text-center">
                                         <input
                                             type="checkbox"
@@ -574,15 +573,14 @@ export default function EtatPaiementPage() {
                     </ScrollAreaWithArrows>
                 </div>
 
-                <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60 min-w-0">
+                <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60 min-w-0">
                     <div className="px-5 py-3.5 bg-gradient-to-r from-blue-600 via-brand-navy to-indigo-800 border-b border-white/10">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wide">Etat Règlement</h3>
                     </div>
 
-                    <ScrollAreaWithArrows maxHeight="min(55vh, 520px)" deps={[reglementRows.length, loading]}>
+                    <ScrollAreaWithArrows variant="table" deps={[reglementRows.length, loading]}>
                         <table className="w-full text-sm">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="sticky top-0 z-10">                                <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                     {['Type', 'N°', 'Banque', 'Nom Tiré', 'Date Encais', 'Actions'].map((h) => (
                                         <th key={h} className="px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                     ))}

@@ -7,7 +7,6 @@ import {
     UserCog,
     Landmark,
     Settings,
-    // Fournisseur
     Contact,
     ClipboardList,
     Banknote,
@@ -15,25 +14,20 @@ import {
     CreditCard,
     Scale,
     ScrollText,
-    // Client
     ContactRound,
     FileCheck,
     FileSignature,
     CircleDollarSign,
     Receipt,
     Wallet,
-    // Stock
     ArrowLeftRight,
     Factory,
     PackageOpen,
     PackageCheck,
-    // Chantiers
     MapPin,
     TrendingDown,
-    // Personnel
     BadgeCheck,
     CalendarCheck,
-    // Monétaire
     Coins,
     Vault,
     FileText,
@@ -109,6 +103,7 @@ export const navigation = [
         children: [
             { to: '/monetaire/transactions', label: 'Transaction et Charges', icon: ArrowLeftRight },
             { to: '/monetaire/charges', label: 'Charge', icon: Wallet },
+            { to: '/monetaire/rapports', label: 'Rapports', icon: FileText },
             { to: '/monetaire/salaires', label: 'Salaire', icon: Coins },
             { to: '/monetaire/tresorerie', label: 'Trésorerie', icon: Vault },
         ],
