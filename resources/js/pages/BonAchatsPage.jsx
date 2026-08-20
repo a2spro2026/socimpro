@@ -183,8 +183,8 @@ function ViewModal({ row, onClose }) {
 }
 
 function FormPanel({
-    open, form, lines, currentRef, saving, error, suppliers, clients, products,
-    onChange, updateLine, handleSelectProduct, addLine, removeLine, onClose, onSubmit, editingId,
+    open, form, lines, currentRef, saving, error, suppliers, clients,
+    onChange, updateLine, addLine, removeLine, onClose, onSubmit, editingId,
 }) {
     if (!open) return null;
     const totalBon = lines.reduce((sum, l) => sum + (parseFloat(lineSubtotal(l)) || 0), 0).toFixed(2);
@@ -239,7 +239,15 @@ function FormPanel({
                                     </select>
                                 </Field>
                                 <Field label="Ville Livraison">
-                                    <input type="text" value={form.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Ville" className={inputClass} />
+                                    <input
+                                        type="text"
+                                        value={form.city}
+                                        disabled
+                                        readOnly
+                                        placeholder="Ville"
+                                        title="Indisponible"
+                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
+                                    />
                                 </Field>
                                 <Field label="Type Rég">
                                     <select value={form.reglement} onChange={(e) => onChange('reglement', e.target.value)} className={inputClass}>
@@ -303,19 +311,13 @@ function FormPanel({
                                         {lines.map((line) => (
                                             <tr key={line.key} className="hover:bg-orange-50/30 dark:hover:bg-slate-800/30">
                                                 <td className="px-2 py-1.5 w-[120px]">
-                                                    <select
-                                                        value={line.product_id}
-                                                        onChange={(e) => handleSelectProduct(line.key, e.target.value)}
+                                                    <input
+                                                        type="text"
+                                                        value={line.article_ref}
+                                                        onChange={(e) => updateLine(line.key, { article_ref: e.target.value, product_id: '' })}
+                                                        placeholder="Réf"
                                                         className={tableInput}
-                                                        title="Liste des références"
-                                                    >
-                                                        <option value="">— Réf —</option>
-                                                        {products.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.article_id || p.reference || p.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                 </td>
                                                 <td className="px-2 py-1.5 min-w-[180px]">
                                                     <input
@@ -388,7 +390,6 @@ export default function BonAchatsPage() {
     const [rows, setRows] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [clients, setClients] = useState([]);
-    const [products, setProducts] = useState([]);
     const [meta, setMeta] = useState({ next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -424,14 +425,12 @@ export default function BonAchatsPage() {
             api.get('/purchase-orders', { params: { all: 1, doc_type: 'bon_achat' } }),
             api.get('/suppliers', { params: { all: 1 } }),
             api.get('/clients', { params: { all: 1 } }),
-            api.get('/products', { params: { all: 1 } }),
         ])
-            .then(([ordersRes, suppliersRes, clientsRes, productsRes]) => {
+            .then(([ordersRes, suppliersRes, clientsRes]) => {
                 setRows(ordersRes.data.data ?? []);
                 setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
                 setSuppliers(suppliersRes.data.data ?? []);
                 setClients(clientsRes.data.data ?? []);
-                setProducts(productsRes.data.data ?? []);
             })
             .catch(() => setRows([]))
             .finally(() => setLoading(false));
@@ -445,20 +444,6 @@ export default function BonAchatsPage() {
 
     const updateLine = (key, patch) => {
         setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
-    };
-
-    const handleSelectProduct = (lineKey, productId) => {
-        const product = products.find((p) => String(p.id) === String(productId));
-        if (!product) {
-            updateLine(lineKey, { product_id: '', article_ref: '', description: '', unit: '' });
-            return;
-        }
-        updateLine(lineKey, {
-            product_id: product.id,
-            article_ref: product.article_id || product.reference || '',
-            description: product.name || '',
-            unit: product.unit || '',
-        });
     };
 
     const addLine = () => setLines((prev) => [...prev, emptyLine()]);
@@ -614,10 +599,8 @@ export default function BonAchatsPage() {
                 error={error}
                 suppliers={suppliers}
                 clients={clients}
-                products={products}
                 onChange={onChange}
                 updateLine={updateLine}
-                handleSelectProduct={handleSelectProduct}
                 addLine={addLine}
                 removeLine={removeLine}
                 onClose={closeModal}

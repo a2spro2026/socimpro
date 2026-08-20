@@ -11,9 +11,12 @@ use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\DocumentApiController;
 use App\Http\Controllers\Api\EmployeeApiController;
 use App\Http\Controllers\Api\ExpenseApiController;
+use App\Http\Controllers\Api\FinishedProductApiController;
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductionOrderApiController;
 use App\Http\Controllers\Api\PurchaseOrderApiController;
 use App\Http\Controllers\Api\SaleOrderApiController;
+use App\Http\Controllers\Api\StockApiController;
 use App\Http\Controllers\Api\SupplierInvoiceApiController;
 use App\Http\Controllers\Api\SupplierPaymentApiController;
 use App\Http\Controllers\Api\QuoteApiController;
@@ -21,6 +24,7 @@ use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\SupplierApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\TransactionApiController;
+use App\Http\Controllers\Api\UserApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -51,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('quotes/{quote}/validate', [QuoteApiController::class, 'validateQuote']);
     Route::apiResource('suppliers', SupplierApiController::class);
     Route::apiResource('products', ProductApiController::class);
+    Route::get('stock/matiere-premiere', [StockApiController::class, 'matierePremiere']);
+    Route::apiResource('production-orders', ProductionOrderApiController::class);
+    Route::apiResource('finished-products', FinishedProductApiController::class);
     Route::get('purchase-orders/balance', [PurchaseOrderApiController::class, 'balance']);
     Route::apiResource('purchase-orders', PurchaseOrderApiController::class);
     Route::post('purchase-orders/{purchase_order}/validate', [PurchaseOrderApiController::class, 'validateOrder']);
@@ -89,4 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reports/financial', [ReportApiController::class, 'financial']);
     Route::get('/reports/export/{type}', [ReportApiController::class, 'export']);
+
+    Route::apiResource('users', UserApiController::class);
+    Route::post('users/{user}/suspend', [UserApiController::class, 'suspend']);
 });

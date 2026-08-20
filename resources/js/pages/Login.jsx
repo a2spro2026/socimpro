@@ -54,6 +54,7 @@ function PasswordField({ value, onChange, showPassword, onToggle }) {
 
                     <input
                         id="password"
+                        name="socimpro-password"
                         type={showPassword ? 'text' : 'password'}
                         value={value}
                         onChange={onChange}
@@ -61,6 +62,12 @@ function PasswordField({ value, onChange, showPassword, onToggle }) {
                         onBlur={() => setFocused(false)}
                         placeholder="Votre mot de passe"
                         required
+                        autoComplete="new-password"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        data-lpignore="true"
+                        data-1p-ignore="true"
                         className="relative z-[1] block w-full pl-11 pr-11 py-3 text-sm text-slate-900 bg-transparent outline-none placeholder:text-slate-400"
                     />
 
@@ -121,10 +128,9 @@ function PasswordField({ value, onChange, showPassword, onToggle }) {
 
 export default function Login() {
     const [status, setStatus] = useState('administrateur');
-    const [email, setEmail] = useState('admin@socimpro.com');
-    const [password, setPassword] = useState('password');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [remember, setRemember] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [emailFocused, setEmailFocused] = useState(false);
@@ -137,6 +143,8 @@ export default function Login() {
         setLoading(true);
         try {
             await login(email, password, status);
+            setEmail('');
+            setPassword('');
             navigate('/');
         } catch (err) {
             setError(
@@ -220,7 +228,14 @@ export default function Login() {
                                         <p className="text-slate-500 text-sm mt-0.5">Connectez-vous à votre espace SOCIMPRO</p>
                                     </motion.div>
 
-                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                    <form
+                                        onSubmit={handleSubmit}
+                                        className="space-y-4"
+                                        autoComplete="off"
+                                        autoCorrect="off"
+                                        autoCapitalize="off"
+                                        spellCheck={false}
+                                    >
                                         <AnimatePresence>
                                             {error && (
                                                 <motion.div
@@ -234,6 +249,10 @@ export default function Login() {
                                             )}
                                         </AnimatePresence>
 
+                                        {/* Champs leurres pour bloquer l'autofill navigateur */}
+                                        <input type="text" name="prevent_autofill_user" autoComplete="username" tabIndex={-1} aria-hidden="true" className="absolute opacity-0 h-0 w-0 pointer-events-none" />
+                                        <input type="password" name="prevent_autofill_pass" autoComplete="current-password" tabIndex={-1} aria-hidden="true" className="absolute opacity-0 h-0 w-0 pointer-events-none" />
+
                                         <div>
                                             <label htmlFor="status" className="field-label-form">
                                                 Statut
@@ -242,9 +261,11 @@ export default function Login() {
                                                 <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                                 <select
                                                     id="status"
+                                                    name="socimpro-status"
                                                     value={status}
                                                     onChange={(e) => setStatus(e.target.value)}
                                                     required
+                                                    autoComplete="off"
                                                     className="block w-full pl-11 pr-10 py-3 text-sm text-slate-900 bg-white outline-none appearance-none cursor-pointer"
                                                 >
                                                     <option value="administrateur">Administrateur</option>
@@ -271,6 +292,7 @@ export default function Login() {
                                                 <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none transition-colors ${emailFocused ? 'text-brand-navy' : 'text-slate-400'}`} />
                                                 <input
                                                     id="email"
+                                                    name="socimpro-login"
                                                     type="email"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
@@ -278,6 +300,12 @@ export default function Login() {
                                                     onBlur={() => setEmailFocused(false)}
                                                     placeholder="Votre email"
                                                     required
+                                                    autoComplete="off"
+                                                    autoCorrect="off"
+                                                    autoCapitalize="off"
+                                                    spellCheck={false}
+                                                    data-lpignore="true"
+                                                    data-1p-ignore="true"
                                                     className="block w-full pl-11 pr-3 py-3 text-sm text-slate-900 bg-white outline-none placeholder:text-slate-400"
                                                 />
                                             </motion.div>
@@ -289,21 +317,6 @@ export default function Login() {
                                             showPassword={showPassword}
                                             onToggle={() => setShowPassword(!showPassword)}
                                         />
-
-                                        <div className="flex items-center justify-between text-sm pt-1">
-                                            <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={remember}
-                                                    onChange={(e) => setRemember(e.target.checked)}
-                                                    className="rounded border-slate-300 text-brand-orange focus:ring-brand-orange"
-                                                />
-                                                <span className="group-hover:text-slate-800 transition-colors">Se souvenir de moi</span>
-                                            </label>
-                                            <button type="button" className="text-brand-orange text-sm font-medium hover:underline underline-offset-2">
-                                                Mot de passe oublié ?
-                                            </button>
-                                        </div>
 
                                         <motion.button
                                             type="submit"

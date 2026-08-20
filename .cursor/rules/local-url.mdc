@@ -1,14 +1,14 @@
 ---
-description: URL locale Autopilote — toujours utiliser ce lien pour le projet
+description: URL locale SOCIMPRO — toujours utiliser ce lien pour le projet
 alwaysApply: true
 ---
 
-# URL locale Autopilote
+# URL locale SOCIMPRO
 
 L’application locale tourne sur :
 
-**http://127.0.0.1:6502/**
+**http://127.0.0.1:6501/**
 
-- SPA : **http://127.0.0.1:6502/app**
-- Login : **http://127.0.0.1:6502/app/login**
-- Ne pas indiquer le port 6501 (réservé à SOCIMPRO / BatiXpert) ni un autre host/port.
+- SPA : **http://127.0.0.1:6501/app**
+- Login : **http://127.0.0.1:6501/app/login**
+- Ne pas indiquer le port 6502 (Autopilote) ni un autre host/port.

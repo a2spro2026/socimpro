@@ -23,10 +23,8 @@ import {
     Receipt,
     Wallet,
     // Stock
-    Boxes,
     ArrowLeftRight,
     Factory,
-    ClipboardCheck,
     PackageOpen,
     PackageCheck,
     // Chantiers
@@ -58,10 +56,21 @@ export const navigation = [
         children: [
             { to: '/fournisseurs/fiches', label: 'Fiche Fournisseur', icon: Contact },
             { to: '/fournisseurs/bons-achats', label: 'Bon Achats', icon: ClipboardList },
-            { to: '/fournisseurs/bons-commande', label: 'Bon de Commande', icon: ClipboardCheck },
             { to: '/fournisseurs/reglements-achats', label: 'Règlement Achats', icon: Banknote },
             { to: '/fournisseurs/balance', label: 'Balance', icon: Scale },
             { to: '/fournisseurs/releve-compte', label: 'Relevé Compte', icon: ScrollText },
+        ],
+    },
+    {
+        id: 'stock',
+        label: 'Stock',
+        icon: Package,
+        perm: 'stock.view',
+        children: [
+            { to: '/stock/matiere-premiere', label: 'Stock Matière Première', icon: PackageOpen },
+            { to: '/stock/bon-production', label: 'Bon Production', icon: Factory },
+            { to: '/stock/produit-fini', label: 'Stock Produit Fini', icon: PackageCheck },
+            { to: '/stock/mouvements', label: 'Mouvement Stock', icon: ArrowLeftRight },
         ],
     },
     {
@@ -93,30 +102,15 @@ export const navigation = [
         ],
     },
     {
-        id: 'stock',
-        label: 'Stock',
-        icon: Package,
-        perm: 'stock.view',
+        id: 'monetaire',
+        label: 'Suivi Monétaire',
+        icon: Landmark,
+        perm: 'reglements.view',
         children: [
-            { to: '/stock/produits', label: 'Fiche Produit', icon: Boxes },
-            { to: '/stock/matiere-premiere', label: 'Stock Matière Première', icon: PackageOpen },
-            { to: '/stock/produit-fini', label: 'Stock Produit Fini', icon: PackageCheck },
-            { to: '/stock/bon-production', label: 'Bon Production', icon: Factory },
-            { to: '/stock/etat-production', label: 'Etat Production Journalière', icon: ClipboardCheck },
-            { to: '/stock/mouvements', label: 'Mouvement Stock', icon: ArrowLeftRight },
-        ],
-    },
-    {
-        id: 'chantiers',
-        label: 'Chantiers',
-        icon: HardHat,
-        perm: 'chantiers.view',
-        disabled: true,
-        children: [
-            { to: '/chantiers/carte', label: 'Carte Chantiers', icon: MapPin },
-            { to: '/clients/devis', label: 'Devis', icon: FileSignature },
-            { to: '/clients/bons-vente', label: "Bon D'Execution", icon: FileCheck },
-            { to: '/chantiers/suivi-depenses', label: 'Suivi Dépenses', icon: TrendingDown },
+            { to: '/monetaire/transactions', label: 'Transaction et Charges', icon: ArrowLeftRight },
+            { to: '/monetaire/charges', label: 'Charge', icon: Wallet },
+            { to: '/monetaire/salaires', label: 'Salaire', icon: Coins },
+            { to: '/monetaire/tresorerie', label: 'Trésorerie', icon: Vault },
         ],
     },
     {
@@ -130,24 +124,25 @@ export const navigation = [
         ],
     },
     {
-        id: 'monetaire',
-        label: 'Suivi Monétaire',
-        icon: Landmark,
-        perm: 'reglements.view',
-        children: [
-            { to: '/monetaire/transactions', label: 'Transaction et Charges', icon: ArrowLeftRight },
-            { to: '/monetaire/charges', label: 'Charge', icon: Wallet },
-            { to: '/monetaire/salaires', label: 'Salaire', icon: Coins },
-            { to: '/monetaire/tresorerie', label: 'Trésorerie', icon: Vault },
-        ],
-    },
-    {
         id: 'configuration',
         label: 'Configuration',
         icon: Settings,
         perm: 'utilisateurs.view',
         children: [
             { to: '/configuration/utilisateurs', label: 'Utilisateur', icon: UserCog },
+        ],
+    },
+    {
+        id: 'chantiers',
+        label: 'Chantiers',
+        icon: HardHat,
+        perm: 'chantiers.view',
+        disabled: true,
+        children: [
+            { to: '/chantiers/carte', label: 'Carte Chantiers', icon: MapPin },
+            { to: '/clients/devis', label: 'Devis', icon: FileSignature },
+            { to: '/clients/bons-vente', label: "Bon D'Execution", icon: FileCheck },
+            { to: '/chantiers/suivi-depenses', label: 'Suivi Dépenses', icon: TrendingDown },
         ],
     },
 ];
