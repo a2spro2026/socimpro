@@ -210,7 +210,8 @@ function NavGroup({ group, onClose, index }) {
     const location = useLocation();
     const disabled = !!group.disabled;
     const isChildActive = !disabled && (group.children || []).some((c) => isItemActive(c, location.pathname));
-    const [open, setOpen] = useState(isChildActive);
+    const keepOpen = ['fournisseurs', 'stock', 'clients'].includes(group.id);
+    const [open, setOpen] = useState(keepOpen || isChildActive);
     const accent = sectionColors[group.id] || 'from-white/10 to-white/5';
 
     if (group.to) {

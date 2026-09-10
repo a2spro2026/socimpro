@@ -10,8 +10,11 @@ import BonVentesPage from './pages/BonVentesPage';
 import ReglementFournisseurPage from './pages/ReglementFournisseurPage';
 import ReglementClientPage from './pages/ReglementClientPage';
 import StockMatierePremierePage from './pages/StockMatierePremierePage';
+import StockDepotDiversPage from './pages/StockDepotDiversPage';
+import StockDepotProduitFiniPage from './pages/StockDepotProduitFiniPage';
 import BonProductionPage from './pages/BonProductionPage';
-import StockProduitFiniPage from './pages/StockProduitFiniPage';
+import BonSortiePage from './pages/BonSortiePage';
+import StockMouvementPage from './pages/StockMouvementPage';
 import GenericListPage from './pages/GenericListPage';
 import ModulePage from './pages/ModulePage';
 import FicheFournisseurPage from './pages/FicheFournisseurPage';
@@ -26,7 +29,6 @@ import FactureAchatsPage from './pages/FactureAchatsPage';
 import FactureVentesPage from './pages/FactureVentesPage';
 import SupplierBalancePage from './pages/SupplierBalancePage';
 import UtilisateursPage from './pages/UtilisateursPage';
-import StockPage from './pages/StockPage';
 import RapportsPage from './pages/RapportsPage';
 import EtatPaiementPage from './pages/clients/EtatPaiementPage';
 import ReleveComptePage from './pages/ReleveComptePage';
@@ -91,11 +93,14 @@ function AppRoutes() {
 
                 {/* Stock */}
                 <Route path="stock/produits" element={<Navigate to="/stock/matiere-premiere" replace />} />
-                <Route path="stock/mouvements" element={<StockPage />} />
+                <Route path="stock/mouvements" element={<StockMouvementPage />} />
                 <Route path="stock/bon-production" element={<BonProductionPage />} />
-                <Route path="stock/etat-production" element={<Navigate to="/stock/produit-fini" replace />} />
+                <Route path="stock/bon-sortie" element={<BonSortiePage />} />
+                <Route path="stock/etat-production" element={<Navigate to="/stock/depot-produit-fini" replace />} />
                 <Route path="stock/matiere-premiere" element={<StockMatierePremierePage />} />
-                <Route path="stock/produit-fini" element={<StockProduitFiniPage />} />
+                <Route path="stock/depot-divers" element={<StockDepotDiversPage />} />
+                <Route path="stock/depot-produit-fini" element={<StockDepotProduitFiniPage />} />
+                <Route path="stock/produit-fini" element={<Navigate to="/stock/depot-produit-fini" replace />} />
                 <Route path="stock/fiscal" element={<Navigate to="/stock/matiere-premiere" replace />} />
 
                 {/* Chantiers */}

@@ -128,8 +128,8 @@ function PasswordField({ value, onChange, showPassword, onToggle }) {
 
 export default function Login() {
     const [status, setStatus] = useState('administrateur');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('zerragui');
+    const [password, setPassword] = useState('0661755048');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -293,12 +293,12 @@ export default function Login() {
                                                 <input
                                                     id="email"
                                                     name="socimpro-login"
-                                                    type="email"
+                                                    type="text"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
                                                     onFocus={() => setEmailFocused(true)}
                                                     onBlur={() => setEmailFocused(false)}
-                                                    placeholder="Votre email"
+                                                    placeholder="Votre login"
                                                     required
                                                     autoComplete="off"
                                                     autoCorrect="off"

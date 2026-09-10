@@ -6,21 +6,29 @@ import {
 import api from '../lib/api';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
+import { findDuplicateArticleRef, DUPLICATE_REF_MESSAGE } from '../lib/uniqueLineRefs';
 
 const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
+const DESTINATION_OPTIONS = [
+    { value: 'cru', label: 'Depot Cru' },
+    { value: 'divers', label: 'Depot Divers' },
+];
 
 const emptyHeader = {
     supplier_id: '',
     order_date: '',
-    city: '',
-    client_livre: '',
+    destination: 'cru',
     reglement: '',
     echeance: '',
     bc_number: '',
     chauffeur: '',
     matricule: '',
 };
+
+function destinationLabel(value) {
+    return DESTINATION_OPTIONS.find((o) => o.value === value)?.label || value || '—';
+}
 
 const emptyLine = () => ({
     key: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -104,9 +112,9 @@ th{background:#f8fafc;font-weight:700}.badge{background:#fff7ed;color:#ea580c;pa
 <h1>STE SOCIMPRO — Bon d'Achat <span class="badge">${esc(row.reference)}</span></h1>
 <table>
 <tr><th>Date</th><td>${esc(row.order_date || '—')}</td><th>Fournisseur</th><td>${esc(row.fournisseur || '—')}</td></tr>
-<tr><th>N° Frns</th><td>${esc(row.bc_number || '—')}</td><th>Client Livré</th><td>${esc(row.client_livre || '—')}</td></tr>
-<tr><th>Ville Livraison</th><td>${esc(row.city || '—')}</td><th>Type Rég / Échéance</th><td>${esc(row.reglement || '—')} / ${esc(row.echeance || '—')}</td></tr>
-<tr><th>Chauffeur</th><td>${esc(row.chauffeur || '—')}</td><th>Matricule</th><td>${esc(row.matricule || '—')}</td></tr>
+<tr><th>N° Frns</th><td>${esc(row.bc_number || '—')}</td><th>Destination</th><td>${esc(destinationLabel(row.destination))}</td></tr>
+<tr><th>Type Rég / Échéance</th><td>${esc(row.reglement || '—')} / ${esc(row.echeance || '—')}</td><th>Chauffeur</th><td>${esc(row.chauffeur || '—')}</td></tr>
+<tr><th>Matricule</th><td colspan="3">${esc(row.matricule || '—')}</td></tr>
 </table>
 <table>
 <thead><tr><th>Réf</th><th>Désignation</th><th>U</th><th>Qté</th><th>P/U</th><th>S/Total</th></tr></thead>
@@ -145,7 +153,7 @@ function ViewModal({ row, onClose }) {
     if (!row) return null;
     const header = [
         ['Date', row.order_date], ['N° B-A', row.reference], ['Fournisseur', row.fournisseur],
-        ['N° Frns', row.bc_number], ['Client Livré', row.client_livre], ['Ville Livraison', row.city],
+        ['N° Frns', row.bc_number], ['Destination', destinationLabel(row.destination)],
         ['Type Rég', row.reglement], ['Échéance', row.echeance], ['Chauffeur', row.chauffeur], ['Matricule', row.matricule],
     ];
     return (
@@ -183,7 +191,7 @@ function ViewModal({ row, onClose }) {
 }
 
 function FormPanel({
-    open, form, lines, currentRef, saving, error, suppliers, clients,
+    open, form, lines, currentRef, saving, error, suppliers,
     onChange, updateLine, addLine, removeLine, onClose, onSubmit, editingId,
 }) {
     if (!open) return null;
@@ -211,50 +219,40 @@ function FormPanel({
                         )}
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2.5 items-end">
-                                <Field label="Date">
+                            <div className="flex flex-nowrap items-end gap-1.5 overflow-x-auto">
+                                <Field label="Date" className="w-[8.25rem] shrink-0">
                                     <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                                 </Field>
-                                <Field label="N° B-A">
+                                <Field label="N° B-A" className="w-[5.25rem] shrink-0">
                                     <input type="text" readOnly value={currentRef} className={readOnlyClass} />
                                 </Field>
-                                <Field label="Nom Fournisseur" className="sm:col-span-2 xl:col-span-1">
-                                    <select required value={form.supplier_id} onChange={(e) => onChange('supplier_id', e.target.value)} className={inputClass}>
+                                <Field label="Nom Fournisseur" className="flex-[1.6] min-w-[11rem]">
+                                    <select required value={form.supplier_id} onChange={(e) => onChange('supplier_id', e.target.value)} className={`${inputClass} text-left min-h-[32px]`}>
                                         <option value="">—</option>
                                         {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="N° Frns">
+                                <Field label="N° Frns" className="w-[5.5rem] shrink-0">
                                     <input type="text" value={form.bc_number} onChange={(e) => onChange('bc_number', e.target.value)} placeholder="N° Frns" className={inputClass} />
                                 </Field>
-                                <Field label="Client Livré">
+                                <Field label="Destination" className="w-[7.5rem] shrink-0">
                                     <select
-                                        value={form.client_livre}
-                                        disabled
-                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
-                                        title="Indisponible"
+                                        required
+                                        value={form.destination}
+                                        onChange={(e) => onChange('destination', e.target.value)}
+                                        className={inputClass}
                                     >
-                                        <option value="">—</option>
-                                        {clients.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        {DESTINATION_OPTIONS.map((o) => (
+                                            <option key={o.value} value={o.value}>{o.label}</option>
+                                        ))}
                                     </select>
                                 </Field>
-                                <Field label="Ville Livraison">
-                                    <input
-                                        type="text"
-                                        value={form.city}
-                                        disabled
-                                        readOnly
-                                        placeholder="Ville"
-                                        title="Indisponible"
-                                        className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
-                                    />
-                                </Field>
-                                <Field label="Type Rég">
+                                <Field label="Type Rég" className="w-[4.25rem] shrink-0">
                                     <select value={form.reglement} onChange={(e) => onChange('reglement', e.target.value)} className={inputClass}>
                                         {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || '—'}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Échéance">
+                                <Field label="Échéance" className="w-[4.5rem] shrink-0">
                                     <div className="relative flex items-center">
                                         <input
                                             type="number"
@@ -263,12 +261,12 @@ function FormPanel({
                                             value={form.echeance}
                                             onChange={(e) => onChange('echeance', e.target.value)}
                                             placeholder="0"
-                                            className={`${inputClass} pr-7`}
+                                            className={`${inputClass} pr-6`}
                                         />
-                                        <span className="absolute right-1.5 text-[9px] font-bold text-slate-400 pointer-events-none">Jrs</span>
+                                        <span className="absolute right-1 text-[9px] font-bold text-slate-400 pointer-events-none">Jrs</span>
                                     </div>
                                 </Field>
-                                <Field label="Chauffeur">
+                                <Field label="Chauffeur" className="w-[6rem] shrink-0">
                                     <input
                                         type="text"
                                         value={form.chauffeur}
@@ -279,7 +277,7 @@ function FormPanel({
                                         className={`${readOnlyClass} opacity-60 grayscale cursor-not-allowed`}
                                     />
                                 </Field>
-                                <Field label="Matricule">
+                                <Field label="Matricule" className="w-[5.5rem] shrink-0">
                                     <input
                                         type="text"
                                         value={form.matricule}
@@ -294,9 +292,8 @@ function FormPanel({
                         </div>
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <div className="px-4 py-2 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 flex items-center justify-between">
+                            <div className="px-4 py-2 bg-gradient-to-r from-brand-navy via-blue-800 to-blue-900 flex items-center">
                                 <h3 className="text-xs font-bold text-white uppercase tracking-wide">Tableau de saisie</h3>
-                                <span className="text-[10px] text-blue-200 font-semibold tabular-nums">Total : {totalBon}</span>
                             </div>
                             <ScrollAreaWithArrows>
                                 <table className="w-full text-sm min-w-[860px]">
@@ -371,7 +368,10 @@ function FormPanel({
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                    <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                        <span className="text-sm font-bold tabular-nums text-brand-navy dark:text-orange-300 whitespace-nowrap">
+                            Total : {totalBon}
+                        </span>
                         <button type="button" onClick={onClose} className="btn-secondary text-xs px-4">Fermer</button>
                         <button type="submit" disabled={saving} className="btn-primary text-xs px-4">
                             {saving ? 'Validation...' : 'Valider'}
@@ -389,7 +389,6 @@ export default function BonAchatsPage() {
     const [lines, setLines] = useState([emptyLine()]);
     const [rows, setRows] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
-    const [clients, setClients] = useState([]);
     const [meta, setMeta] = useState({ next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -424,13 +423,11 @@ export default function BonAchatsPage() {
         Promise.all([
             api.get('/purchase-orders', { params: { all: 1, doc_type: 'bon_achat' } }),
             api.get('/suppliers', { params: { all: 1 } }),
-            api.get('/clients', { params: { all: 1 } }),
         ])
-            .then(([ordersRes, suppliersRes, clientsRes]) => {
+            .then(([ordersRes, suppliersRes]) => {
                 setRows(ordersRes.data.data ?? []);
                 setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—', total_reglements: 0, reliquat: 0 });
                 setSuppliers(suppliersRes.data.data ?? []);
-                setClients(clientsRes.data.data ?? []);
             })
             .catch(() => setRows([]))
             .finally(() => setLoading(false));
@@ -473,8 +470,7 @@ export default function BonAchatsPage() {
         setForm({
             supplier_id: row.supplier_id || '',
             order_date: row.order_date_raw || '',
-            city: row.city || '',
-            client_livre: row.client_livre || '',
+            destination: row.destination === 'divers' ? 'divers' : 'cru',
             reglement: row.reglement || '',
             echeance: parseDelayInput(row.echeance || ''),
             bc_number: row.bc_number || '',
@@ -531,14 +527,17 @@ export default function BonAchatsPage() {
             setError('Sélectionnez un fournisseur');
             return;
         }
+        if (findDuplicateArticleRef(validLines)) {
+            setError(DUPLICATE_REF_MESSAGE);
+            return;
+        }
 
         setSaving(true);
         const payload = {
             supplier_id: form.supplier_id,
             order_date: form.order_date || new Date().toISOString().slice(0, 10),
             doc_type: 'bon_achat',
-            city: form.city || null,
-            client_livre: form.client_livre || null,
+            destination: form.destination || 'cru',
             reglement: form.reglement || null,
             echeance: formatDelaySave(form.echeance),
             bc_number: form.bc_number || null,
@@ -564,7 +563,9 @@ export default function BonAchatsPage() {
             closeModal();
             load();
         } catch (err) {
-            setError(err.response?.data?.message || 'Erreur lors de la validation');
+            const errors = err.response?.data?.errors || {};
+            const firstError = Object.values(errors).flat()[0];
+            setError(firstError || err.response?.data?.message || 'Erreur lors de la validation');
         } finally {
             setSaving(false);
         }
@@ -598,7 +599,6 @@ export default function BonAchatsPage() {
                 saving={saving}
                 error={error}
                 suppliers={suppliers}
-                clients={clients}
                 onChange={onChange}
                 updateLine={updateLine}
                 addLine={addLine}
@@ -664,7 +664,7 @@ export default function BonAchatsPage() {
                     <table className="w-full text-sm min-w-[1100px]">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
-                                {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Client Livré', 'Ville', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
+                                {['Date', 'N° B-A', 'Fournisseur', 'N° Frns', 'Destination', 'Qté totale', 'Total', 'Échéance', 'Actions'].map((h) => (
                                     <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}
                             </tr>
@@ -672,7 +672,7 @@ export default function BonAchatsPage() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
                                 [...Array(3)].map((_, i) => (
-                                    <tr key={i}>{[...Array(10)].map((__, j) => (
+                                    <tr key={i}>{[...Array(9)].map((__, j) => (
                                         <td key={j} className="px-4 py-3 text-center"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[80px]" /></td>
                                     ))}</tr>
                                 ))
@@ -687,8 +687,7 @@ export default function BonAchatsPage() {
                                         <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-orange-400">{row.reference}</td>
                                         <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur || '—'}</td>
                                         <td className="px-4 py-2.5 text-center font-mono text-xs text-slate-600 dark:text-slate-300">{row.bc_number || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.client_livre || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.city || '—'}</td>
+                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{destinationLabel(row.destination)}</td>
                                         <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
                                             {orderTotalQuantity(row).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                                         </td>
@@ -710,7 +709,7 @@ export default function BonAchatsPage() {
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan={10} className="px-4 py-12 text-center text-slate-400">Aucun bon d'achat — cliquez sur Ajouter</td></tr>
+                                <tr><td colSpan={9} className="px-4 py-12 text-center text-slate-400">Aucun bon d'achat — cliquez sur Ajouter</td></tr>
                             )}
                         </tbody>
                     </table>

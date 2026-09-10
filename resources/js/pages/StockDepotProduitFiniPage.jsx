@@ -1,27 +1,23 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { XCircle, RefreshCw } from 'lucide-react';
 import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 
-export default function StockMatierePremierePage() {
+export default function StockDepotProduitFiniPage() {
     const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(() => {
         setLoading(true);
-        api.get('/stock/matiere-premiere')
-            .then((r) => {
-                setRows(r.data.data ?? []);
-            })
+        api.get('/stock/depot-produit-fini')
+            .then((r) => setRows(r.data.data ?? []))
             .catch(() => setRows([]))
             .finally(() => setLoading(false));
     }, []);
 
-    useEffect(() => {
-        load();
-    }, [load]);
+    useEffect(() => { load(); }, [load]);
 
     return (
         <div className="space-y-4">
@@ -36,8 +32,8 @@ export default function StockMatierePremierePage() {
             </div>
 
             <div className="glass-card overflow-hidden shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-teal-700 border-b border-white/10">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">Stock Matière Première</h3>
+                <div className="px-5 py-3.5 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-800 border-b border-white/10">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">Depot Produit Fini</h3>
                 </div>
                 <ScrollAreaWithArrows maxHeight="min(60vh, 560px)" deps={[rows.length, loading]}>
                     <table className="w-full text-sm min-w-[720px]">
@@ -63,10 +59,10 @@ export default function StockMatierePremierePage() {
                                 ))
                             ) : rows.length ? (
                                 rows.map((row, i) => (
-                                    <tr key={`${row.ref}-${row.designation}-${i}`} className="hover:bg-emerald-50/40 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-emerald-400">{row.ref || '—'}</td>
+                                    <tr key={`${row.ref}-${row.designation}-${i}`} className="hover:bg-violet-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                                        <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-violet-400">{row.ref || '—'}</td>
                                         <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.designation || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                                        <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-violet-700 dark:text-violet-300">
                                             {Number(row.quantity).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.unit || '—'}</td>
@@ -75,7 +71,7 @@ export default function StockMatierePremierePage() {
                             ) : (
                                 <tr>
                                     <td colSpan={4} className="px-4 py-12 text-center text-slate-400">
-                                        Aucun produit — les quantités proviennent des bons d&apos;achat destinés au Depot Cru
+                                        Aucun produit — les quantités proviennent des bons de sortie
                                     </td>
                                 </tr>
                             )}

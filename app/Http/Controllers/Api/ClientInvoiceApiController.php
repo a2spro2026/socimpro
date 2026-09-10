@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientInvoice;
+use App\Support\UniqueArticleRefs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -164,7 +165,7 @@ class ClientInvoiceApiController extends Controller
 
     private function normalizeItems(array $validated): array
     {
-        return collect($validated['items'] ?? [])->map(function ($item) {
+        $items = collect($validated['items'] ?? [])->map(function ($item) {
             $qty = (float) ($item['quantity'] ?? 1);
             $price = (float) ($item['unit_price'] ?? 0);
 
@@ -178,6 +179,10 @@ class ClientInvoiceApiController extends Controller
                 'total' => round($qty * $price, 2),
             ];
         })->values()->all();
+
+        UniqueArticleRefs::assert($items);
+
+        return $items;
     }
 
     private function syncItems(ClientInvoice $invoice, array $items): void

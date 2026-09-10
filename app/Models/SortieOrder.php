@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ProductionOrder extends Model
+class SortieOrder extends Model
 {
     protected $fillable = [
         'reference',
         'article_ref',
-        'production_date',
+        'sortie_date',
         'designation',
         'unit',
         'quantity',
@@ -21,7 +21,7 @@ class ProductionOrder extends Model
     protected function casts(): array
     {
         return [
-            'production_date' => 'date',
+            'sortie_date' => 'date',
             'quantity' => 'decimal:3',
         ];
     }
@@ -33,6 +33,6 @@ class ProductionOrder extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(ProductionOrderItem::class);
+        return $this->hasMany(SortieOrderItem::class);
     }
 }

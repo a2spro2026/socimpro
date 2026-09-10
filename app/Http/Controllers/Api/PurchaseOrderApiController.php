@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Support\UniqueArticleRefs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -264,7 +265,7 @@ class PurchaseOrderApiController extends Controller
             'echeance' => 'nullable|string|max:20',
             'city' => 'nullable|string|max:255',
             'client_livre' => 'nullable|string|max:255',
-            'destination' => 'nullable|in:cru,divers',
+            'destination' => ($partial ? 'sometimes|' : '').'required|in:cru,divers',
             'chauffeur' => 'nullable|string|max:255',
             'matricule' => 'nullable|string|max:50',
             'status' => 'nullable|in:en_attente,valide,annule,recu_partiel,recu',
@@ -294,7 +295,7 @@ class PurchaseOrderApiController extends Controller
     private function normalizeItems(array $validated): array
     {
         if (! empty($validated['items']) && is_array($validated['items'])) {
-            return collect($validated['items'])->map(function ($item) {
+            $items = collect($validated['items'])->map(function ($item) {
                 $qty = (float) ($item['quantity'] ?? 1);
                 $price = (float) ($item['unit_price'] ?? 0);
 
@@ -312,12 +313,16 @@ class PurchaseOrderApiController extends Controller
                     'total' => round($qty * $price, 2),
                 ];
             })->values()->all();
+
+            UniqueArticleRefs::assert($items);
+
+            return $items;
         }
 
         $qty = (float) ($validated['quantity'] ?? 1);
         $price = (float) ($validated['unit_price'] ?? 0);
 
-        return [[
+        $fallback = [[
             'product_id' => null,
             'article_ref' => $validated['article_ref'] ?? null,
             'code_barre' => null,
@@ -330,6 +335,10 @@ class PurchaseOrderApiController extends Controller
             'unit_price' => $price,
             'total' => round($qty * $price, 2),
         ]];
+
+        UniqueArticleRefs::assert($fallback);
+
+        return $fallback;
     }
 
     private function syncItems(PurchaseOrder $order, array $items): void

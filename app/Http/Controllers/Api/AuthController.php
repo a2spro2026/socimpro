@@ -13,12 +13,20 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string|max:255',
             'password' => 'required',
             'status' => 'required|in:administrateur,commercial,facturation',
         ]);
 
-        $user = User::with('role.permissions')->where('email', $request->email)->first();
+        $login = trim((string) $request->email);
+
+        $user = User::with('role.permissions')
+            ->where(function ($q) use ($login) {
+                $q->where('email', $login)
+                    ->orWhere('email', $login.'@socimpro.com')
+                    ->orWhere('email', 'like', $login.'@%');
+            })
+            ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([

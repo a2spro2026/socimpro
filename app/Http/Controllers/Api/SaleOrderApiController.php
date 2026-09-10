@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SaleOrder;
+use App\Support\UniqueArticleRefs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SaleOrderApiController extends Controller
 {
@@ -143,7 +145,7 @@ class SaleOrderApiController extends Controller
             'status' => 'nullable|in:en_attente,valide,annule,livre',
             'items' => ($partial ? 'sometimes' : 'required').'|array|min:1',
             'items.*.product_id' => 'nullable|exists:products,id',
-            'items.*.article_ref' => 'nullable|string|max:100',
+            'items.*.article_ref' => 'required|string|max:100',
             'items.*.code_barre' => 'nullable|string|max:100',
             'items.*.description' => 'required|string|max:255',
             'items.*.categorie' => 'nullable|string|max:255',
@@ -165,31 +167,54 @@ class SaleOrderApiController extends Controller
 
     private function normalizeItems(array $validated): array
     {
+        $stock = StockApiController::aggregatedSellableStock();
+
         if (! empty($validated['items']) && is_array($validated['items'])) {
-            return collect($validated['items'])->map(function ($item) {
+            $items = [];
+            foreach ($validated['items'] as $index => $item) {
                 $qty = (float) ($item['quantity'] ?? 1);
                 $price = (float) ($item['unit_price'] ?? 0);
 
-                return [
+                $match = $stock->first(function ($row) use ($item) {
+                    return mb_strtolower(trim((string) $row['ref'])) === mb_strtolower(trim((string) ($item['article_ref'] ?? '')));
+                });
+
+                if (! $match) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.article_ref" => 'Produit introuvable en stock (Depot Divers ou Depot Produit Fini).',
+                    ]);
+                }
+
+                if ($qty > (float) $match['quantity'] + 0.0001) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.quantity" => 'Quantité supérieure au stock disponible ('.$match['quantity'].').',
+                    ]);
+                }
+
+                $items[] = [
                     'product_id' => $item['product_id'] ?? null,
-                    'article_ref' => $item['article_ref'] ?? null,
+                    'article_ref' => $match['ref'],
                     'code_barre' => $item['code_barre'] ?? null,
-                    'description' => $item['description'] ?? 'Article',
+                    'description' => $match['designation'],
                     'categorie' => $item['categorie'] ?? null,
                     'famille' => $item['famille'] ?? null,
                     'marque' => $item['marque'] ?? null,
-                    'unit' => $item['unit'] ?? null,
+                    'unit' => $match['unit'] === '—' ? null : $match['unit'],
                     'quantity' => $qty,
                     'unit_price' => $price,
                     'total' => round($qty * $price, 2),
                 ];
-            })->values()->all();
+            }
+
+            UniqueArticleRefs::assert($items);
+
+            return $items;
         }
 
         $qty = (float) ($validated['quantity'] ?? 1);
         $price = (float) ($validated['unit_price'] ?? 0);
 
-        return [[
+        $fallback = [[
             'product_id' => null,
             'article_ref' => $validated['article_ref'] ?? null,
             'code_barre' => null,
@@ -202,6 +227,10 @@ class SaleOrderApiController extends Controller
             'unit_price' => $price,
             'total' => round($qty * $price, 2),
         ]];
+
+        UniqueArticleRefs::assert($fallback);
+
+        return $fallback;
     }
 
     private function syncItems(SaleOrder $order, array $items): void

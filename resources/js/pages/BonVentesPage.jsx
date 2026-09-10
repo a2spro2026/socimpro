@@ -6,6 +6,12 @@ import {
 import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
+import {
+    findDuplicateArticleRef,
+    DUPLICATE_REF_MESSAGE,
+    usedArticleRefs,
+    normalizeArticleRef,
+} from '../lib/uniqueLineRefs';
 
 const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
@@ -23,13 +29,24 @@ const emptyHeader = {
 
 const emptyLine = () => ({
     key: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    stock_key: '',
     product_id: '',
     article_ref: '',
     description: '',
     unit: '',
     quantity: '1',
     unit_price: '',
+    stock_qty: null,
 });
+
+function stockOptionKey(p) {
+    return normalizeArticleRef(p.ref);
+}
+
+function depotLabel(depots) {
+    if (!depots?.length) return '';
+    return depots.map((d) => (d === 'fini' ? 'Fini' : 'Divers')).join('+');
+}
 
 function Field({ label, children, className = '' }) {
     return (
@@ -182,7 +199,7 @@ function ViewModal({ row, onClose }) {
 }
 
 function FormPanel({
-    open, form, lines, currentRef, saving, error, clients, products,
+    open, form, lines, currentRef, saving, error, clients, stockProducts,
     onChange, updateLine, handleSelectProduct, addLine, removeLine, onClose, onSubmit, editingId,
 }) {
     if (!open) return null;
@@ -209,33 +226,38 @@ function FormPanel({
                             <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border border-red-100 dark:border-red-800">{error}</div>
                         )}
 
+                        {!stockProducts.length && (
+                            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-xs border border-amber-100 dark:border-amber-800">
+                                Aucun produit en stock Divers ou Produit Fini — créez d&apos;abord un bon d&apos;achat (Depot Divers) ou un bon de sortie.
+                            </div>
+                        )}
+
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-                            <ScrollAreaWithArrows variant="table">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2.5 items-end min-w-[1100px]">
-                                <Field label="Date">
+                            <div className="flex flex-nowrap items-end gap-1.5 overflow-x-auto">
+                                <Field label="Date" className="w-[8.25rem] shrink-0">
                                     <input type="date" required value={form.order_date} onChange={(e) => onChange('order_date', e.target.value)} className={inputClass} />
                                 </Field>
-                                <Field label="N° B-V">
+                                <Field label="N° B-V" className="w-[5.25rem] shrink-0">
                                     <input type="text" readOnly value={currentRef} className={readOnlyClass} />
                                 </Field>
-                                <Field label="Nom Client" className="sm:col-span-2 xl:col-span-1">
-                                    <select required value={form.client_id} onChange={(e) => onChange('client_id', e.target.value)} className={inputClass}>
+                                <Field label="Nom Client" className="flex-[1.8] min-w-[12rem]">
+                                    <select required value={form.client_id} onChange={(e) => onChange('client_id', e.target.value)} className={`${inputClass} text-left min-h-[32px]`}>
                                         <option value="">—</option>
                                         {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Ville">
+                                <Field label="Ville" className="w-[6rem] shrink-0">
                                     <input type="text" value={form.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Ville" className={inputClass} />
                                 </Field>
-                                <Field label="Adresse Livraison" className="sm:col-span-2 xl:col-span-1">
-                                    <input type="text" value={form.address} onChange={(e) => onChange('address', e.target.value)} placeholder="Adresse livraison" className={inputClass} />
+                                <Field label="Adresse Livraison" className="flex-1 min-w-[8rem]">
+                                    <input type="text" value={form.address} onChange={(e) => onChange('address', e.target.value)} placeholder="Adresse livraison" className={`${inputClass} text-left`} />
                                 </Field>
-                                <Field label="Type Régl">
+                                <Field label="Type Régl" className="w-[4.25rem] shrink-0">
                                     <select value={form.reglement} onChange={(e) => onChange('reglement', e.target.value)} className={inputClass}>
                                         {REGLEMENT_OPTIONS.map((v) => <option key={v || 'r'} value={v}>{v || '—'}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Échéance">
+                                <Field label="Échéance" className="w-[4.5rem] shrink-0">
                                     <div className="relative flex items-center">
                                         <input
                                             type="number"
@@ -244,19 +266,18 @@ function FormPanel({
                                             value={form.echeance}
                                             onChange={(e) => onChange('echeance', e.target.value)}
                                             placeholder="0"
-                                            className={`${inputClass} pr-7`}
+                                            className={`${inputClass} pr-6`}
                                         />
-                                        <span className="absolute right-1.5 text-[9px] font-bold text-slate-400 pointer-events-none">Jrs</span>
+                                        <span className="absolute right-1 text-[9px] font-bold text-slate-400 pointer-events-none">Jrs</span>
                                     </div>
                                 </Field>
-                                <Field label="Chauffeur">
+                                <Field label="Chauffeur" className="w-[6rem] shrink-0">
                                     <input type="text" value={form.chauffeur} onChange={(e) => onChange('chauffeur', e.target.value)} placeholder="Chauffeur" className={inputClass} />
                                 </Field>
-                                <Field label="Matricule">
+                                <Field label="Matricule" className="w-[5.5rem] shrink-0">
                                     <input type="text" value={form.matricule} onChange={(e) => onChange('matricule', e.target.value)} placeholder="Matricule" className={inputClass} />
                                 </Field>
                             </div>
-                            </ScrollAreaWithArrows>
                         </div>
 
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -275,37 +296,61 @@ function FormPanel({
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                         {lines.map((line) => (
                                             <tr key={line.key} className="hover:bg-orange-50/30 dark:hover:bg-slate-800/30">
-                                                <td className="px-2 py-1.5 w-[120px]">
+                                                <td className="px-2 py-1.5 w-[100px] max-w-[110px]">
                                                     <select
-                                                        value={line.product_id}
+                                                        required
+                                                        value={line.stock_key}
                                                         onChange={(e) => handleSelectProduct(line.key, e.target.value)}
                                                         className={tableInput}
-                                                        title="Liste des références"
+                                                        title={
+                                                            line.article_ref
+                                                                ? `${line.article_ref}${line.description ? ` — ${line.description}` : ''}`
+                                                                : 'Choisir une réf en stock Divers / Fini'
+                                                        }
                                                     >
-                                                        <option value="">— Réf —</option>
-                                                        {products.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.article_id || p.reference || p.name}
-                                                            </option>
-                                                        ))}
+                                                        <option value="">—</option>
+                                                        {stockProducts.map((p) => {
+                                                            const key = stockOptionKey(p);
+                                                            const taken = usedArticleRefs(lines, line.key);
+                                                            const disabled = Boolean(key && taken.has(key));
+                                                            return (
+                                                                <option
+                                                                    key={key}
+                                                                    value={key}
+                                                                    disabled={disabled}
+                                                                    title={`${p.ref} — ${p.designation} · ${depotLabel(p.depots)} · stock ${Number(p.quantity).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}`}
+                                                                >
+                                                                    {p.ref}{disabled ? ' ✓' : ''}
+                                                                </option>
+                                                            );
+                                                        })}
                                                     </select>
                                                 </td>
-                                                <td className="px-2 py-1.5 min-w-[180px]">
+                                                <td className="px-2 py-1.5 min-w-[280px] w-[45%]">
                                                     <input
                                                         type="text"
+                                                        readOnly
                                                         value={line.description}
-                                                        onChange={(e) => updateLine(line.key, { description: e.target.value })}
                                                         placeholder="Désignation"
-                                                        className={`${tableInput} text-left`}
+                                                        className={`${readOnlyClass} text-left`}
+                                                        title={line.description || undefined}
                                                     />
                                                 </td>
                                                 <td className="px-2 py-1.5 w-[72px]">
-                                                    <select value={line.unit} onChange={(e) => updateLine(line.key, { unit: e.target.value })} className={tableInput}>
-                                                        {UNIT_OPTIONS.map((v) => <option key={v || 'u'} value={v}>{v || '—'}</option>)}
-                                                    </select>
+                                                    <input type="text" readOnly value={line.unit || '—'} className={readOnlyClass} />
                                                 </td>
                                                 <td className="px-2 py-1.5 w-[80px]">
-                                                    <input type="number" step="0.001" min="0" value={line.quantity} onChange={(e) => updateLine(line.key, { quantity: e.target.value })} className={tableInput} />
+                                                    <input
+                                                        type="number"
+                                                        step="0.001"
+                                                        min="0.001"
+                                                        max={line.stock_qty != null ? line.stock_qty : undefined}
+                                                        required
+                                                        value={line.quantity}
+                                                        onChange={(e) => updateLine(line.key, { quantity: e.target.value })}
+                                                        className={tableInput}
+                                                        title={line.stock_qty != null ? `Stock max : ${line.stock_qty}` : undefined}
+                                                    />
                                                 </td>
                                                 <td className="px-2 py-1.5 w-[95px]">
                                                     <input type="number" step="0.01" min="0" value={line.unit_price} onChange={(e) => updateLine(line.key, { unit_price: e.target.value })} placeholder="0.00" className={tableInput} />
@@ -344,7 +389,7 @@ function FormPanel({
 
                     <div className="flex justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
                         <button type="button" onClick={onClose} className="btn-secondary text-xs px-4">Fermer</button>
-                        <button type="submit" disabled={saving} className="btn-primary text-xs px-4">
+                        <button type="submit" disabled={saving || !stockProducts.length} className="btn-primary text-xs px-4">
                             {saving ? 'Validation...' : 'Valider'}
                         </button>
                     </div>
@@ -360,7 +405,7 @@ export default function BonVentesPage() {
     const [lines, setLines] = useState([emptyLine()]);
     const [rows, setRows] = useState([]);
     const [clients, setClients] = useState([]);
-    const [products, setProducts] = useState([]);
+    const [stockProducts, setStockProducts] = useState([]);
     const [meta, setMeta] = useState({ next_ref: '—', date: '—' });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -385,13 +430,41 @@ export default function BonVentesPage() {
         Promise.all([
             api.get('/sales-orders', { params: { all: 1 } }),
             api.get('/clients', { params: { all: 1 } }),
-            api.get('/products', { params: { all: 1 } }),
+            api.get('/stock/depot-divers'),
+            api.get('/stock/depot-produit-fini'),
         ])
-            .then(([ordersRes, clientsRes, productsRes]) => {
+            .then(([ordersRes, clientsRes, diversRes, finiRes]) => {
                 setRows(ordersRes.data.data ?? []);
                 setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—' });
                 setClients(clientsRes.data.data ?? []);
-                setProducts(productsRes.data.data ?? []);
+
+                const map = new Map();
+                const push = (list, depot) => {
+                    (list || []).forEach((p) => {
+                        const refKey = normalizeArticleRef(p.ref);
+                        if (!refKey || refKey === '—') return;
+                        const qty = Number(p.quantity) || 0;
+                        if (qty <= 0) return;
+                        const existing = map.get(refKey);
+                        if (existing) {
+                            if (!existing.depots.includes(depot)) existing.depots.push(depot);
+                            existing.quantity = Math.round((existing.quantity + qty) * 1000) / 1000;
+                        } else {
+                            map.set(refKey, {
+                                ref: p.ref,
+                                designation: p.designation || '',
+                                unit: p.unit && p.unit !== '—' ? p.unit : '',
+                                quantity: qty,
+                                depots: [depot],
+                            });
+                        }
+                    });
+                };
+                push(diversRes.data.data ?? [], 'divers');
+                push(finiRes.data.data ?? [], 'fini');
+                setStockProducts(
+                    [...map.values()].sort((a, b) => String(a.ref).localeCompare(String(b.ref), 'fr', { sensitivity: 'base' })),
+                );
             })
             .catch(() => setRows([]))
             .finally(() => setLoading(false));
@@ -401,24 +474,39 @@ export default function BonVentesPage() {
         load();
     }, [load]);
 
+    const stockByKey = useMemo(() => {
+        const map = new Map();
+        stockProducts.forEach((p) => map.set(stockOptionKey(p), p));
+        return map;
+    }, [stockProducts]);
+
     const onChange = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
     const updateLine = (key, patch) => {
         setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
     };
 
-    const handleSelectProduct = (lineKey, productId) => {
-        const product = products.find((p) => String(p.id) === String(productId));
+    const handleSelectProduct = (lineKey, stockKey) => {
+        const product = stockByKey.get(stockKey);
         if (!product) {
-            updateLine(lineKey, { product_id: '', article_ref: '', description: '', unit: '' });
+            updateLine(lineKey, {
+                stock_key: '', product_id: '', article_ref: '', description: '', unit: '', stock_qty: null,
+            });
             return;
         }
+        if (usedArticleRefs(lines, lineKey).has(stockOptionKey(product))) {
+            setError(DUPLICATE_REF_MESSAGE);
+            return;
+        }
+        setError('');
         updateLine(lineKey, {
-            product_id: product.id,
-            article_ref: product.article_id || product.reference || '',
-            description: product.name || '',
+            stock_key: stockOptionKey(product),
+            product_id: '',
+            article_ref: product.ref || '',
+            description: product.designation || '',
             unit: product.unit || '',
-            unit_price: product.unit_price != null ? String(product.unit_price) : '',
+            stock_qty: product.quantity,
+            quantity: '1',
         });
     };
 
@@ -457,23 +545,33 @@ export default function BonVentesPage() {
             matricule: row.matricule || '',
         });
         if (row.items?.length) {
-            setLines(row.items.map((i) => ({
-                key: `edit-${i.id}`,
-                product_id: i.product_id || '',
-                article_ref: i.article_ref || '',
-                description: i.description || '',
-                unit: i.unit || '',
-                quantity: i.quantity != null ? String(i.quantity) : '1',
-                unit_price: i.unit_price != null ? String(i.unit_price) : '',
-            })));
+            setLines(row.items.map((i) => {
+                const stockKey = normalizeArticleRef(i.article_ref);
+                const stock = stockByKey.get(stockKey);
+                return {
+                    key: `edit-${i.id}`,
+                    stock_key: stock ? stockKey : '',
+                    product_id: i.product_id || '',
+                    article_ref: stock?.ref || i.article_ref || '',
+                    description: stock?.designation || i.description || '',
+                    unit: stock?.unit || i.unit || '',
+                    quantity: i.quantity != null ? String(i.quantity) : '1',
+                    unit_price: i.unit_price != null ? String(i.unit_price) : '',
+                    stock_qty: stock?.quantity ?? null,
+                };
+            }));
         } else {
+            const stockKey = normalizeArticleRef(row.article_ref);
+            const stock = stockByKey.get(stockKey);
             setLines([{
                 ...emptyLine(),
-                article_ref: row.article_ref || '',
-                description: row.designation || '',
-                unit: row.unit || '',
+                stock_key: stock ? stockKey : '',
+                article_ref: stock?.ref || row.article_ref || '',
+                description: stock?.designation || row.designation || '',
+                unit: stock?.unit || row.unit || '',
                 quantity: row.quantity != null ? String(row.quantity) : '1',
                 unit_price: row.unit_price != null ? String(row.unit_price) : '',
+                stock_qty: stock?.quantity ?? null,
             }]);
         }
         setEditingId(row.id);
@@ -497,14 +595,30 @@ export default function BonVentesPage() {
         e.preventDefault();
         setError('');
 
-        const validLines = lines.filter((l) => l.description?.trim());
+        const validLines = lines.filter((l) => l.stock_key && l.article_ref && l.description?.trim());
         if (!validLines.length) {
-            setError('Ajoutez au moins un article avec une désignation');
+            setError('Sélectionnez au moins un produit en stock (Divers ou Fini)');
             return;
         }
         if (!form.client_id) {
             setError('Sélectionnez un client');
             return;
+        }
+        if (findDuplicateArticleRef(validLines)) {
+            setError(DUPLICATE_REF_MESSAGE);
+            return;
+        }
+        for (const l of validLines) {
+            const stock = stockByKey.get(normalizeArticleRef(l.article_ref));
+            if (!stock) {
+                setError(`Produit « ${l.article_ref} » introuvable en stock (Divers ou Fini)`);
+                return;
+            }
+            const qty = parseFloat(String(l.quantity).replace(',', '.')) || 0;
+            if (qty > Number(stock.quantity) + 0.0001) {
+                setError(`Quantité de « ${l.article_ref} » supérieure au stock (${stock.quantity})`);
+                return;
+            }
         }
 
         setSaving(true);
@@ -519,8 +633,8 @@ export default function BonVentesPage() {
             matricule: form.matricule || null,
             status: 'valide',
             items: validLines.map((l) => ({
-                product_id: l.product_id || null,
-                article_ref: l.article_ref || null,
+                product_id: null,
+                article_ref: l.article_ref,
                 description: l.description,
                 unit: l.unit || null,
                 quantity: parseFloat(String(l.quantity).replace(',', '.')) || 1,
@@ -537,7 +651,9 @@ export default function BonVentesPage() {
             closeModal();
             load();
         } catch (err) {
-            setError(err.response?.data?.message || 'Erreur lors de la validation');
+            const errors = err.response?.data?.errors || {};
+            const firstError = Object.values(errors).flat()[0];
+            setError(firstError || err.response?.data?.message || 'Erreur lors de la validation');
         } finally {
             setSaving(false);
         }
@@ -571,7 +687,7 @@ export default function BonVentesPage() {
                 saving={saving}
                 error={error}
                 clients={clients}
-                products={products}
+                stockProducts={stockProducts}
                 onChange={onChange}
                 updateLine={updateLine}
                 handleSelectProduct={handleSelectProduct}

@@ -44,6 +44,18 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['email' => 'zerragui@socimpro.com'],
+            [
+                'name' => 'Zerragui',
+                'password' => '0661755048',
+                'role_id' => $adminRole->id,
+                'phone' => '0661755048',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
         $client = Client::firstOrCreate(
             ['name' => 'Société Atlas BTP'],
             [

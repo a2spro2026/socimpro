@@ -6,6 +6,12 @@ import {
 import api from '../lib/api';
 import { parseDelayInput, formatDelaySave } from './devis/devisUtils';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
+import {
+    findDuplicateArticleRef,
+    DUPLICATE_REF_MESSAGE,
+    usedArticleRefs,
+    normalizeArticleRef,
+} from '../lib/uniqueLineRefs';
 
 const UNIT_OPTIONS = ['', 'Kg', 'U', 'Sac', 'ML', 'M²', 'M³', 'Tn', 'M'];
 const REGLEMENT_OPTIONS = ['', 'Esp', 'Chq', 'Eff', 'Vir', 'Vers'];
@@ -283,11 +289,16 @@ function FormPanel({
                                                         title="Liste des références"
                                                     >
                                                         <option value="">— Réf —</option>
-                                                        {products.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.article_id || p.reference || p.name}
-                                                            </option>
-                                                        ))}
+                                                        {products.map((p) => {
+                                                            const ref = normalizeArticleRef(p.article_id || p.reference);
+                                                            const taken = usedArticleRefs(lines, line.key);
+                                                            const disabled = Boolean(ref && taken.has(ref));
+                                                            return (
+                                                                <option key={p.id} value={p.id} disabled={disabled}>
+                                                                    {p.article_id || p.reference || p.name}{disabled ? ' (déjà saisi)' : ''}
+                                                                </option>
+                                                            );
+                                                        })}
                                                     </select>
                                                 </td>
                                                 <td className="px-2 py-1.5 min-w-[180px]">
@@ -413,9 +424,15 @@ export default function FactureVentesPage() {
             updateLine(lineKey, { product_id: '', article_ref: '', description: '', unit: '' });
             return;
         }
+        const ref = product.article_id || product.reference || '';
+        if (ref && usedArticleRefs(lines, lineKey).has(normalizeArticleRef(ref))) {
+            setError(DUPLICATE_REF_MESSAGE);
+            return;
+        }
+        setError('');
         updateLine(lineKey, {
             product_id: product.id,
-            article_ref: product.article_id || product.reference || '',
+            article_ref: ref,
             description: product.name || '',
             unit: product.unit || '',
             unit_price: product.unit_price != null ? String(product.unit_price) : '',
@@ -504,6 +521,10 @@ export default function FactureVentesPage() {
         }
         if (!form.client_id) {
             setError('Sélectionnez un client');
+            return;
+        }
+        if (findDuplicateArticleRef(validLines)) {
+            setError(DUPLICATE_REF_MESSAGE);
             return;
         }
 

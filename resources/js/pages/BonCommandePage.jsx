@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Printer, X, XCircle, Trash2, Pencil } from 'lucide-react';
 import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
+import {
+    findDuplicateArticleRef,
+    DUPLICATE_REF_MESSAGE,
+    usedArticleRefs,
+    normalizeArticleRef,
+} from '../lib/uniqueLineRefs';
 
 const emptyHeader = {
     supplier_id: '',
@@ -172,11 +178,16 @@ function FormPanel({
                                                         className={lineInput}
                                                     >
                                                         <option value="">— Réf —</option>
-                                                        {products.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.article_id || p.reference || p.name}
-                                                            </option>
-                                                        ))}
+                                                        {products.map((p) => {
+                                                            const ref = normalizeArticleRef(p.article_id || p.reference);
+                                                            const taken = usedArticleRefs(lines, line.key);
+                                                            const disabled = Boolean(ref && taken.has(ref));
+                                                            return (
+                                                                <option key={p.id} value={p.id} disabled={disabled}>
+                                                                    {p.article_id || p.reference || p.name}{disabled ? ' (déjà saisi)' : ''}
+                                                                </option>
+                                                            );
+                                                        })}
                                                     </select>
                                                 </td>
                                                 <td className="px-2 py-1.5">
@@ -327,11 +338,17 @@ export default function BonCommandePage() {
                 : l)));
             return;
         }
+        const ref = product.article_id || product.reference || '';
+        if (ref && usedArticleRefs(lines, lineKey).has(normalizeArticleRef(ref))) {
+            setError(DUPLICATE_REF_MESSAGE);
+            return;
+        }
+        setError('');
         setLines((prev) => prev.map((l) => (l.key === lineKey
             ? {
                 ...l,
                 product_id: product.id,
-                article_ref: product.article_id || product.reference || '',
+                article_ref: ref,
                 description: product.name || '',
                 unit: product.unit || '',
             }
@@ -393,6 +410,10 @@ export default function BonCommandePage() {
         const validLines = lines.filter((l) => l.description?.trim());
         if (!validLines.length) {
             setError('Ajoutez au moins un article avec une désignation');
+            return;
+        }
+        if (findDuplicateArticleRef(validLines)) {
+            setError(DUPLICATE_REF_MESSAGE);
             return;
         }
         setSaving(true);
