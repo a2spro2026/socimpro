@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ShoppingCart, ShoppingBag, Receipt, Wallet, AlertTriangle, X, Package,
+    ShoppingCart, ShoppingBag, Receipt, Wallet, AlertTriangle, X, Package, Users, TrendingUp,
 } from 'lucide-react';
 import api from '../../lib/api';
 import ScrollAreaWithArrows from '../ScrollAreaWithArrows';
@@ -17,12 +17,30 @@ const cards = [
         chart: 'area',
     },
     {
+        key: 'solde_fournisseur',
+        label: 'Solde Fournisseurs',
+        icon: Wallet,
+        format: 'currency',
+        gradient: 'from-indigo-500 via-violet-600 to-slate-900',
+        glow: 'rgba(99, 102, 241, 0.4)',
+        chart: 'area',
+    },
+    {
         key: 'total_ventes',
-        label: 'Valeur Ventes',
+        label: 'Valeur Vente',
         icon: ShoppingBag,
         format: 'currency',
         gradient: 'from-amber-500 via-orange-500 to-orange-700',
         glow: 'rgba(249, 115, 22, 0.4)',
+        chart: 'area',
+    },
+    {
+        key: 'solde_clients',
+        label: 'Solde Clients',
+        icon: Users,
+        format: 'currency',
+        gradient: 'from-cyan-500 via-sky-600 to-blue-900',
+        glow: 'rgba(14, 165, 233, 0.4)',
         chart: 'area',
     },
     {
@@ -35,13 +53,12 @@ const cards = [
         chart: 'bars',
     },
     {
-        key: 'valeur_caisse',
-        label: 'Valeur Caisse',
-        icon: Wallet,
+        key: 'benefices',
+        label: 'Bénéfice',
+        icon: TrendingUp,
         format: 'currency',
         gradient: 'from-emerald-500 via-teal-600 to-green-800',
         glow: 'rgba(16, 185, 129, 0.4)',
-        empty: true,
         chart: 'area',
     },
 ];
@@ -417,7 +434,7 @@ export default function KpiCards({ kpis, stockAlerts, loading }) {
         return (
             <div>
                 <SectionTitle />
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3">
                     {[...cards, { key: 'alert' }].map((card) => (
                         <div key={card.key} className="kpi-card-skeleton rounded-xl h-[100px]" />
                     ))}
@@ -429,7 +446,7 @@ export default function KpiCards({ kpis, stockAlerts, loading }) {
     return (
         <div>
             <SectionTitle />
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3">
                 {cards.map((card, i) => (
                     <KpiCard
                         key={card.key}

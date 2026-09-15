@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Charge;
 use App\Models\Chantier;
+use App\Models\Client;
 use App\Models\ClientInvoice;
+use App\Models\ClientOrder;
+use App\Models\ClientPayment;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Payment;
@@ -68,6 +71,16 @@ class DashboardApiController extends Controller
         $totalSoldesInitiauxFournisseurs = (float) Supplier::sum('initial_balance');
         $soldeFournisseur = max($totalSoldesInitiauxFournisseurs + $totalBonsAchats - $totalReglementsFournisseurs, 0);
 
+        $totalBudgetsClients = (float) Client::sum('budget');
+        $totalVentesClients = (float) SaleOrder::query()
+            ->where('status', '!=', 'annule')
+            ->sum('total_ttc')
+            + (float) ClientOrder::query()
+                ->where('status', '!=', 'annule')
+                ->sum('total_ttc');
+        $totalReglementsClients = (float) ClientPayment::sum('montant');
+        $soldeClients = max($totalBudgetsClients + $totalVentesClients - $totalReglementsClients, 0);
+
         $chantiersActifs = Chantier::where('status', 'en_cours')->where('archived', false)->count();
         $chantiersTermines = Chantier::where('status', 'termine')->count();
 
@@ -90,7 +103,7 @@ class DashboardApiController extends Controller
         $chargesMensuelles = Expense::where('expense_date', '>=', $monthStart)->sum('amount');
 
         $recettesMois = ClientInvoice::where('invoice_date', '>=', $monthStart)->sum('total_ttc');
-        $benefices = $recettesMois - $depensesMois;
+        $benefices = (float) $totalVentes - (float) $totalAchats - (float) $totalCharges;
 
         $stockFaible = Product::where('status', 'actif')
             ->whereColumn('quantity_in_stock', '<=', 'min_stock_alert')
@@ -263,6 +276,7 @@ class DashboardApiController extends Controller
                 'valeur_stock_depot' => round($stockDepot, 2),
                 'total_charges' => round($totalCharges, 2),
                 'solde_fournisseur' => round($soldeFournisseur, 2),
+                'solde_clients' => round($soldeClients, 2),
                 'tresorerie' => round($tresorerie, 2),
                 'chantiers_actifs' => $chantiersActifs,
                 'chantiers_termines' => $chantiersTermines,
@@ -282,15 +296,47 @@ class DashboardApiController extends Controller
                             ->where('status', '!=', 'annule')
                             ->sum('total_ttc');
                     }),
+                    'solde_fournisseur' => $this->lastMonthsSeries(function ($start, $end) {
+                        $achats = (float) PurchaseOrder::query()
+                            ->whereBetween('order_date', [$start, $end])
+                            ->where('status', '!=', 'annule')
+                            ->where(function ($q) {
+                                $q->where('doc_type', 'bon_achat')
+                                    ->orWhereNull('doc_type')
+                                    ->orWhere('doc_type', '');
+                            })
+                            ->sum('total_ttc');
+                        $reglements = (float) SupplierPayment::whereBetween('payment_date', [$start, $end])->sum('montant');
+
+                        return max($achats - $reglements, 0);
+                    }),
                     'total_ventes' => $this->lastMonthsSeries(function ($start, $end) {
                         return SaleOrder::whereBetween('order_date', [$start, $end])
                             ->where('status', '!=', 'annule')
                             ->sum('total_ttc');
                     }),
+                    'solde_clients' => $this->lastMonthsSeries(function ($start, $end) {
+                        $ventes = (float) SaleOrder::whereBetween('order_date', [$start, $end])
+                            ->where('status', '!=', 'annule')
+                            ->sum('total_ttc');
+                        $reglements = (float) ClientPayment::whereBetween('payment_date', [$start, $end])->sum('montant');
+
+                        return max($ventes - $reglements, 0);
+                    }),
                     'total_charges' => $this->lastMonthsSeries(function ($start, $end) {
                         return Expense::whereBetween('expense_date', [$start, $end])->sum('amount');
                     }),
-                    'valeur_caisse' => [0, 0, 0, 0, 0, 0],
+                    'benefices' => $this->lastMonthsSeries(function ($start, $end) {
+                        $ventes = (float) SaleOrder::whereBetween('order_date', [$start, $end])
+                            ->where('status', '!=', 'annule')
+                            ->sum('total_ttc');
+                        $achats = (float) PurchaseOrder::whereBetween('order_date', [$start, $end])
+                            ->where('status', '!=', 'annule')
+                            ->sum('total_ttc');
+                        $charges = (float) Expense::whereBetween('expense_date', [$start, $end])->sum('amount');
+
+                        return $ventes - $achats - $charges;
+                    }),
                 ],
             ],
             'stock_alerts' => $stockAlerts,
