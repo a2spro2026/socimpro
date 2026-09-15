@@ -64,10 +64,10 @@ export const navigation = [
         perm: 'stock.view',
         children: [
             { to: '/stock/matiere-premiere', label: 'Stock Matière Première', icon: PackageOpen },
-            { to: '/stock/depot-divers', label: 'Depot Divers', icon: Boxes },
             { to: '/stock/bon-production', label: 'Bon Production', icon: Factory },
-            { to: '/stock/bon-sortie', label: 'Bon Sortie', icon: LogOut },
+            { to: '/stock/bon-sortie', label: 'Bon de Sortie', icon: LogOut },
             { to: '/stock/depot-produit-fini', label: 'Depot Produit Fini', icon: PackageCheck },
+            { to: '/stock/depot-divers', label: 'Depot Divers', icon: Boxes },
             { to: '/stock/mouvements', label: 'Mouvement Stock', icon: ArrowLeftRight },
         ],
     },

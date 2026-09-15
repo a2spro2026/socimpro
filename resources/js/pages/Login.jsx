@@ -127,9 +127,9 @@ function PasswordField({ value, onChange, showPassword, onToggle }) {
 }
 
 export default function Login() {
-    const [status, setStatus] = useState('administrateur');
-    const [email, setEmail] = useState('zerragui');
-    const [password, setPassword] = useState('0661755048');
+    const [status, setStatus] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -268,6 +268,9 @@ export default function Login() {
                                                     autoComplete="off"
                                                     className="block w-full pl-11 pr-10 py-3 text-sm text-slate-900 bg-white outline-none appearance-none cursor-pointer"
                                                 >
+                                                    <option value="" disabled>
+                                                        Choisir un statut
+                                                    </option>
                                                     <option value="administrateur">Administrateur</option>
                                                     <option value="commercial">Commercial</option>
                                                     <option value="facturation">Facturation</option>

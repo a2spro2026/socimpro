@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('stock/matiere-premiere', [StockApiController::class, 'matierePremiere']);
     Route::get('stock/depot-divers', [StockApiController::class, 'depotDivers']);
     Route::get('stock/depot-produit-fini', [StockApiController::class, 'depotProduitFini']);
+    Route::get('stock/vendable', [StockApiController::class, 'vendable']);
     Route::get('stock/mouvements', [StockApiController::class, 'mouvements']);
     Route::get('stock/by-destination', [StockApiController::class, 'byDestination']);
     Route::apiResource('production-orders', ProductionOrderApiController::class);

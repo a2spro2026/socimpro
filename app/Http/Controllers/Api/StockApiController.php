@@ -35,6 +35,17 @@ class StockApiController extends Controller
     }
 
     /**
+     * Stock vendable pour Bon de Vente = Depot Divers + Depot Produit Fini (après ventes).
+     */
+    public function vendable(Request $request)
+    {
+        $exceptId = $request->query('except_sales_order_id');
+        $exceptId = $exceptId !== null && $exceptId !== '' ? (int) $exceptId : null;
+
+        return $this->stockResponse(self::aggregatedSellableStock($exceptId));
+    }
+
+    /**
      * Mouvement stock annuel : stock initial, achats/ventes par mois, stock actuel.
      */
     public function mouvements(Request $request)
@@ -108,9 +119,9 @@ class StockApiController extends Controller
     }
 
     /**
-     * Stock vendable = Depot Divers + Depot Produit Fini (qté > 0), fusionné par réf.
+     * Stock vendable = Depot Divers + Depot Produit Fini (qté > 0 après ventes), fusionné par réf.
      */
-    public static function aggregatedSellableStock(): Collection
+    public static function aggregatedSellableStock(?int $exceptSalesOrderId = null): Collection
     {
         $merged = collect();
 
@@ -136,8 +147,8 @@ class StockApiController extends Controller
                     }
                     $merged->put($key, [
                         'ref' => $existing['ref'],
-                        'designation' => $existing['designation'],
-                        'unit' => $existing['unit'],
+                        'designation' => $existing['designation'] !== '—' ? $existing['designation'] : $row['designation'],
+                        'unit' => $existing['unit'] !== '—' ? $existing['unit'] : $row['unit'],
                         'quantity' => round($existing['quantity'] + $qty, 3),
                         'depots' => $depots,
                     ]);
@@ -153,10 +164,51 @@ class StockApiController extends Controller
             }
         }
 
+        $soldByRef = self::soldQuantitiesByRef($exceptSalesOrderId);
+
         return $merged
+            ->map(function ($row) use ($soldByRef) {
+                $key = mb_strtolower(trim((string) $row['ref']));
+                $sold = (float) ($soldByRef[$key] ?? 0);
+                $row['quantity'] = round(max(0, (float) $row['quantity'] - $sold), 3);
+
+                return $row;
+            })
+            ->filter(fn ($row) => (float) $row['quantity'] > 0)
             ->values()
             ->sortBy('ref', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
+    }
+
+    /**
+     * Quantités déjà vendues par réf article (hors bon en cours d'édition).
+     */
+    public static function soldQuantitiesByRef(?int $exceptSalesOrderId = null): array
+    {
+        if (! Schema::hasTable('sales_orders') || ! Schema::hasTable('sales_order_items')) {
+            return [];
+        }
+
+        $q = DB::table('sales_order_items as soi')
+            ->join('sales_orders as so', 'so.id', '=', 'soi.sales_order_id')
+            ->where('so.status', '!=', 'annule')
+            ->whereNotNull('soi.article_ref')
+            ->where('soi.article_ref', '!=', '');
+
+        if ($exceptSalesOrderId) {
+            $q->where('so.id', '!=', $exceptSalesOrderId);
+        }
+
+        $rows = $q->selectRaw('LOWER(TRIM(soi.article_ref)) as ref_key, SUM(soi.quantity) as qty')
+            ->groupBy(DB::raw('LOWER(TRIM(soi.article_ref))'))
+            ->get();
+
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(string) $r->ref_key] = (float) $r->qty;
+        }
+
+        return $map;
     }
 
     public static function aggregatedFromPurchaseOrders(string $destination = 'cru'): Collection

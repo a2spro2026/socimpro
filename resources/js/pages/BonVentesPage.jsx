@@ -425,50 +425,43 @@ export default function BonVentesPage() {
         [rows],
     );
 
+    const loadStock = useCallback(async (exceptSalesOrderId = null) => {
+        const params = exceptSalesOrderId ? { except_sales_order_id: exceptSalesOrderId } : {};
+        try {
+            const stockRes = await api.get('/stock/vendable', { params });
+            const products = (stockRes.data.data ?? [])
+                .map((p) => ({
+                    ref: p.ref,
+                    designation: p.designation || '',
+                    unit: p.unit && p.unit !== '—' ? p.unit : '',
+                    quantity: Number(p.quantity) || 0,
+                    depots: Array.isArray(p.depots) ? p.depots : [],
+                }))
+                .filter((p) => p.ref && p.ref !== '—' && p.quantity > 0)
+                .sort((a, b) => String(a.ref).localeCompare(String(b.ref), 'fr', { sensitivity: 'base' }));
+            setStockProducts(products);
+            return products;
+        } catch {
+            setStockProducts([]);
+            return [];
+        }
+    }, []);
+
     const load = useCallback(() => {
         setLoading(true);
         Promise.all([
             api.get('/sales-orders', { params: { all: 1 } }),
             api.get('/clients', { params: { all: 1 } }),
-            api.get('/stock/depot-divers'),
-            api.get('/stock/depot-produit-fini'),
+            loadStock(),
         ])
-            .then(([ordersRes, clientsRes, diversRes, finiRes]) => {
+            .then(([ordersRes, clientsRes]) => {
                 setRows(ordersRes.data.data ?? []);
                 setMeta(ordersRes.data.meta ?? { next_ref: '—', date: '—' });
                 setClients(clientsRes.data.data ?? []);
-
-                const map = new Map();
-                const push = (list, depot) => {
-                    (list || []).forEach((p) => {
-                        const refKey = normalizeArticleRef(p.ref);
-                        if (!refKey || refKey === '—') return;
-                        const qty = Number(p.quantity) || 0;
-                        if (qty <= 0) return;
-                        const existing = map.get(refKey);
-                        if (existing) {
-                            if (!existing.depots.includes(depot)) existing.depots.push(depot);
-                            existing.quantity = Math.round((existing.quantity + qty) * 1000) / 1000;
-                        } else {
-                            map.set(refKey, {
-                                ref: p.ref,
-                                designation: p.designation || '',
-                                unit: p.unit && p.unit !== '—' ? p.unit : '',
-                                quantity: qty,
-                                depots: [depot],
-                            });
-                        }
-                    });
-                };
-                push(diversRes.data.data ?? [], 'divers');
-                push(finiRes.data.data ?? [], 'fini');
-                setStockProducts(
-                    [...map.values()].sort((a, b) => String(a.ref).localeCompare(String(b.ref), 'fr', { sensitivity: 'base' })),
-                );
             })
             .catch(() => setRows([]))
             .finally(() => setLoading(false));
-    }, []);
+    }, [loadStock]);
 
     useEffect(() => {
         load();
@@ -529,11 +522,15 @@ export default function BonVentesPage() {
         setLines([emptyLine()]);
         setEditingId(null);
         setError('');
-        load();
+        loadStock();
         setModalOpen(true);
     };
 
-    const openEdit = (row) => {
+    const openEdit = async (row) => {
+        setEditingId(row.id);
+        setError('');
+        const products = await loadStock(row.id);
+        const byKey = new Map(products.map((p) => [normalizeArticleRef(p.ref), p]));
         setForm({
             client_id: row.client_id || '',
             order_date: row.order_date_raw || '',
@@ -547,10 +544,10 @@ export default function BonVentesPage() {
         if (row.items?.length) {
             setLines(row.items.map((i) => {
                 const stockKey = normalizeArticleRef(i.article_ref);
-                const stock = stockByKey.get(stockKey);
+                const stock = byKey.get(stockKey);
                 return {
                     key: `edit-${i.id}`,
-                    stock_key: stock ? stockKey : '',
+                    stock_key: stock ? stockKey : (stockKey || ''),
                     product_id: i.product_id || '',
                     article_ref: stock?.ref || i.article_ref || '',
                     description: stock?.designation || i.description || '',
@@ -562,10 +559,10 @@ export default function BonVentesPage() {
             }));
         } else {
             const stockKey = normalizeArticleRef(row.article_ref);
-            const stock = stockByKey.get(stockKey);
+            const stock = byKey.get(stockKey);
             setLines([{
                 ...emptyLine(),
-                stock_key: stock ? stockKey : '',
+                stock_key: stock ? stockKey : (stockKey || ''),
                 article_ref: stock?.ref || row.article_ref || '',
                 description: stock?.designation || row.designation || '',
                 unit: stock?.unit || row.unit || '',
@@ -574,8 +571,6 @@ export default function BonVentesPage() {
                 stock_qty: stock?.quantity ?? null,
             }]);
         }
-        setEditingId(row.id);
-        setError('');
         setModalOpen(true);
     };
 

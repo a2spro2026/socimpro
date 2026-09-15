@@ -83,7 +83,7 @@ class SaleOrderApiController extends Controller
     public function update(Request $request, SaleOrder $sales_order)
     {
         $validated = $this->validated($request, true);
-        $items = $this->normalizeItems($validated);
+        $items = $this->normalizeItems($validated, $sales_order->id);
         $subtotal = collect($items)->sum('total');
         $first = $items[0] ?? null;
 
@@ -165,9 +165,9 @@ class SaleOrderApiController extends Controller
         return $request->validate($rules);
     }
 
-    private function normalizeItems(array $validated): array
+    private function normalizeItems(array $validated, ?int $exceptSalesOrderId = null): array
     {
-        $stock = StockApiController::aggregatedSellableStock();
+        $stock = StockApiController::aggregatedSellableStock($exceptSalesOrderId);
 
         if (! empty($validated['items']) && is_array($validated['items'])) {
             $items = [];
