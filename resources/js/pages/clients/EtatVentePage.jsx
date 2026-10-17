@@ -35,7 +35,7 @@ export default function EtatVentePage() {
 
     useEffect(() => { load(); }, [load]);
 
-    const headers = ['Date', 'Réf', 'Désignation', 'Qté', "Coût d'achat", 'Prix Vente', 'Marge'];
+    const headers = ['Date', 'Réf', 'Désignation', 'Qté', 'U', "Coût d'achat", 'Prix Vente', 'Marge'];
 
     return (
         <div className="space-y-4">
@@ -104,7 +104,7 @@ export default function EtatVentePage() {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
                                 [...Array(4)].map((_, i) => (
-                                    <tr key={i}>{[...Array(7)].map((__, j) => (
+                                    <tr key={i}>{[...Array(8)].map((__, j) => (
                                         <td key={j} className="px-4 py-3 text-center"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[70px]" /></td>
                                     ))}</tr>
                                 ))
@@ -117,6 +117,7 @@ export default function EtatVentePage() {
                                         <td className="px-4 py-2.5 text-center tabular-nums font-semibold text-emerald-700 dark:text-emerald-300">
                                             {Number(row.quantity || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                                         </td>
+                                        <td className="px-4 py-2.5 text-center text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">{row.unit || '—'}</td>
                                         <td className="px-4 py-2.5 text-center tabular-nums text-slate-600 dark:text-slate-300">{formatMontant(row.cout_achat)}</td>
                                         <td className="px-4 py-2.5 text-center tabular-nums font-semibold text-brand-navy dark:text-orange-400">{formatMontant(row.prix_vente)}</td>
                                         <td className="px-4 py-2.5 text-center">
@@ -131,7 +132,7 @@ export default function EtatVentePage() {
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400">Aucune vente pour ces critères</td></tr>
+                                <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">Aucune vente pour ces critères</td></tr>
                             )}
                         </tbody>
                         {!loading && rows.length > 0 && (
@@ -139,6 +140,7 @@ export default function EtatVentePage() {
                                 <tr className="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-600 font-bold">
                                     <td colSpan={3} className="px-4 py-2.5 text-center text-xs uppercase text-slate-500">Totaux</td>
                                     <td className="px-4 py-2.5 text-center tabular-nums text-emerald-700">{Number(totaux.quantity || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}</td>
+                                    <td className="px-4 py-2.5 text-center text-slate-400">—</td>
                                     <td className="px-4 py-2.5 text-center tabular-nums">{formatMontant(totaux.cout_achat)}</td>
                                     <td className="px-4 py-2.5 text-center tabular-nums text-brand-navy dark:text-orange-400">{formatMontant(totaux.prix_vente)}</td>
                                     <td className="px-4 py-2.5 text-center tabular-nums text-emerald-700">{formatMontant(totaux.marge)}</td>

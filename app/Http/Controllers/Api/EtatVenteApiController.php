@@ -39,6 +39,7 @@ class EtatVenteApiController extends Controller
                 $items = collect([(object) [
                     'article_ref' => $order->article_ref,
                     'description' => $order->designation,
+                    'unit' => $order->unit,
                     'quantity' => $order->quantity,
                     'unit_price' => $order->unit_price,
                     'total' => $order->subtotal ?? $order->total_ttc,
@@ -64,6 +65,7 @@ class EtatVenteApiController extends Controller
                 $coutTotal = round($coutUnit * $qty, 2);
                 $prixTotal = round($item->total !== null ? (float) $item->total : ($prixVenteUnit * $qty), 2);
                 $marge = round($prixTotal - $coutTotal, 2);
+                $unit = $this->resolveUnit($item, $order);
 
                 $rows[] = [
                     'date' => optional($order->order_date)->format('d/m/Y'),
@@ -71,6 +73,7 @@ class EtatVenteApiController extends Controller
                     'reference' => $order->reference,
                     'article_ref' => $ref ?: '—',
                     'designation' => $designation ?: '—',
+                    'unit' => $unit,
                     'quantity' => $qty,
                     'cout_achat' => $coutTotal,
                     'cout_achat_unit' => $coutUnit,
@@ -94,6 +97,40 @@ class EtatVenteApiController extends Controller
             'data' => $rows,
             'totaux' => $totaux,
         ]);
+    }
+
+    private function resolveUnit(object $item, SaleOrder $order): string
+    {
+        $unit = trim((string) ($item->unit ?? ''));
+        if ($unit !== '') {
+            return $unit;
+        }
+
+        $product = $item->product ?? null;
+        if ($product && trim((string) ($product->unit ?? '')) !== '') {
+            return trim((string) $product->unit);
+        }
+
+        if (! empty($item->product_id)) {
+            $p = Product::find($item->product_id);
+            if ($p && trim((string) ($p->unit ?? '')) !== '') {
+                return trim((string) $p->unit);
+            }
+        }
+
+        $ref = trim((string) ($item->article_ref ?? ''));
+        if ($ref !== '') {
+            $p = Product::where(function ($q) use ($ref) {
+                $q->where('reference', $ref)->orWhere('article_id', $ref);
+            })->first();
+            if ($p && trim((string) ($p->unit ?? '')) !== '') {
+                return trim((string) $p->unit);
+            }
+        }
+
+        $orderUnit = trim((string) ($order->unit ?? ''));
+
+        return $orderUnit !== '' ? $orderUnit : '—';
     }
 
     private function resolvePurchaseCost(object $item): float
