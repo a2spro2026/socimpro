@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { XCircle, Search, Wallet, Package } from 'lucide-react';
+import { XCircle, Search, Wallet, ShoppingCart, TrendingUp } from 'lucide-react';
 import api from '../../lib/api';
 import ScrollAreaWithArrows from '../../components/ScrollAreaWithArrows';
 
@@ -45,23 +45,34 @@ export default function EtatVentePage() {
                 </button>
 
                 <div className="ml-auto flex flex-wrap items-center gap-2.5">
-                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-emerald-200 dark:border-emerald-800">
-                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
-                            <Package className="w-4 h-4" />
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/40 dark:to-slate-800/40 border-slate-200 dark:border-slate-700">
+                        <div className="p-2 rounded-lg bg-slate-200/80 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200">
+                            <ShoppingCart className="w-4 h-4" />
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Qté</p>
-                            <p className="text-base font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-                                {Number(totaux.quantity || 0).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coût d&apos;achats</p>
+                            <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">
+                                {formatMontant(totaux.cout_achat)}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-200 dark:border-amber-800">
                         <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                            <TrendingUp className="w-4 h-4" />
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coût de ventes</p>
+                            <p className="text-base font-bold tabular-nums text-amber-700 dark:text-amber-300">
+                                {formatMontant(totaux.prix_vente)}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-emerald-200 dark:border-emerald-800">
+                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
                             <Wallet className="w-4 h-4" />
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Marge totale</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Marge</p>
                             <p className={`text-base font-bold tabular-nums ${(totaux.marge || 0) >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-600'}`}>
                                 {formatMontant(totaux.marge)}
                             </p>
