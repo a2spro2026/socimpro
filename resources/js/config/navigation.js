@@ -79,6 +79,7 @@ export const navigation = [
         children: [
             { to: '/clients/fiches', label: 'Fiche Client', icon: ContactRound },
             { to: '/clients/bons-de-vente', label: 'Bon de Vente', icon: ClipboardList },
+            { to: '/clients/etat-vente', label: 'État Vente', icon: TrendingDown },
             { to: '/clients/reglements-vente', label: 'Règlement Client', icon: CircleDollarSign },
             { to: '/clients/balance', label: 'Balance', icon: Scale },
             { to: '/clients/releve-compte', label: 'Relevé Compte', icon: ScrollText },

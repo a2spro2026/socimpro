@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\DocumentApiController;
 use App\Http\Controllers\Api\EmployeeApiController;
+use App\Http\Controllers\Api\EtatVenteApiController;
 use App\Http\Controllers\Api\ExpenseApiController;
 use App\Http\Controllers\Api\FinishedProductApiController;
 use App\Http\Controllers\Api\ProductApiController;
@@ -76,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('purchase-orders/{purchase_order}/validate', [PurchaseOrderApiController::class, 'validateOrder']);
     Route::apiResource('sales-orders', SaleOrderApiController::class);
     Route::post('sales-orders/{sales_order}/validate', [SaleOrderApiController::class, 'validateOrder']);
+    Route::get('etat-vente', [EtatVenteApiController::class, 'index']);
 
     Route::get('supplier-invoices/meta', [SupplierInvoiceApiController::class, 'meta']);
     Route::apiResource('supplier-invoices', SupplierInvoiceApiController::class);

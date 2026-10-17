@@ -31,6 +31,7 @@ import UtilisateursPage from './pages/UtilisateursPage';
 import RapportsPage from './pages/RapportsPage';
 import FichePersonnelPage from './pages/FichePersonnelPage';
 import PersonnelEtatPaiementPage from './pages/PersonnelEtatPaiementPage';
+import EtatVentePage from './pages/clients/EtatVentePage';
 import ReleveComptePage from './pages/ReleveComptePage';
 import FacturationBalancePage from './pages/facturation/FacturationBalancePage';
 
@@ -62,6 +63,7 @@ function AppRoutes() {
                 {/* Client */}
                 <Route path="clients/fiches" element={<FicheClientPage />} />
                 <Route path="clients/bons-de-vente" element={<BonVentesPage />} />
+                <Route path="clients/etat-vente" element={<EtatVentePage />} />
                 <Route path="clients/devis/nouveau" element={<DevisFormPage />} />
                 <Route path="clients/devis/:id" element={<DevisFormPage />} />
                 <Route path="clients/devis" element={<DevisListPage />} />
