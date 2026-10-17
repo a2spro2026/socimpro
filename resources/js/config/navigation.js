@@ -119,7 +119,8 @@ export const navigation = [
         perm: 'personnel.view',
         children: [
             { to: '/personnel/fiches', label: 'Fiche Personnel', icon: Contact },
-            { to: '/personnel/etat-paiement', label: 'État Paiement', icon: CalendarCheck },
+            { to: '/personnel/emploi-operationnel', label: 'Emploi Opérationnel', icon: CalendarCheck },
+            { to: '/personnel/paiement', label: 'Paiement', icon: Wallet },
         ],
     },
     {

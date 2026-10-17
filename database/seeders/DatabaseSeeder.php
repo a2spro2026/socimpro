@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'zerragui@socimpro.com'],
             [
                 'name' => 'Zerragui',
-                'password' => '0661755048',
+                'password' => Hash::make('0661755048'),
                 'role_id' => $adminRole->id,
                 'phone' => '0661755048',
                 'is_active' => true,

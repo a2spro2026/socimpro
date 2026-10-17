@@ -10,15 +10,28 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /** Comptes développeur : connexion sans sélection de statut. */
+    private const DEVELOPER_LOGINS = [
+        'zerragui',
+        'zerragui@socimpro.com',
+    ];
+
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|string|max:255',
             'password' => 'required',
-            'status' => 'required|in:administrateur,commercial,facturation',
+            'status' => 'nullable|in:administrateur,commercial,facturation',
         ]);
 
         $login = trim((string) $request->email);
+        $isDeveloper = $this->isDeveloperLogin($login);
+
+        if (! $isDeveloper) {
+            $request->validate([
+                'status' => 'required|in:administrateur,commercial,facturation',
+            ]);
+        }
 
         $user = User::with('role.permissions')
             ->where(function ($q) use ($login) {
@@ -40,16 +53,19 @@ class AuthController extends Controller
             ]);
         }
 
-        $statusRoles = [
-            'administrateur' => ['administrateur'],
-            'commercial' => ['commercial'],
-            'facturation' => ['facturation', 'comptable'],
-        ];
+        // Développeur : accès direct sans contrôle de statut
+        if (! $this->isDeveloperLogin($login) && ! $this->isDeveloperLogin($user->email)) {
+            $statusRoles = [
+                'administrateur' => ['administrateur'],
+                'commercial' => ['commercial'],
+                'facturation' => ['facturation', 'comptable'],
+            ];
 
-        if (! in_array($user->role?->slug, $statusRoles[$request->status], true)) {
-            throw ValidationException::withMessages([
-                'status' => ['Le statut sélectionné ne correspond pas à ce compte.'],
-            ]);
+            if (! in_array($user->role?->slug, $statusRoles[$request->status] ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'status' => ['Le statut sélectionné ne correspond pas à ce compte.'],
+                ]);
+            }
         }
 
         $token = $user->createToken('socimpro-spa')->plainTextToken;
@@ -72,6 +88,13 @@ class AuthController extends Controller
         $user = $request->user()->load('role.permissions');
 
         return response()->json($this->formatUser($user));
+    }
+
+    private function isDeveloperLogin(string $login): bool
+    {
+        $normalized = strtolower(trim($login));
+
+        return in_array($normalized, self::DEVELOPER_LOGINS, true);
     }
 
     private function formatUser(User $user): array

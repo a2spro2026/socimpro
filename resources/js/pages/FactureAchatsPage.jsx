@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Eye, Pencil, Trash2, Printer, FileText, X, RefreshCw, Receipt,
+    Plus, Eye, Pencil, Trash2, Printer, FileText, X, XCircle, Wallet, Receipt,
 } from 'lucide-react';
 import api from '../lib/api';
 import ScrollAreaWithArrows from '../components/ScrollAreaWithArrows';
@@ -278,7 +279,8 @@ function FormModal({ open, form, lines, meta, editingId, saving, error, supplier
     );
 }
 
-export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Facture Achats', pageSubtitle = 'Saisie des factures fournisseurs' }) {
+export default function FactureAchatsPage({ depotFilter = null }) {
+    const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [summary, setSummary] = useState({ total_ht: 0, total_ttc: 0, count: 0 });
     const [meta, setMeta] = useState({ next_ref: 'FA-0001', date_raw: '' });
@@ -288,6 +290,7 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [viewRow, setViewRow] = useState(null);
+    const [selectedId, setSelectedId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -420,13 +423,20 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
         }
     };
 
-    const headers = ['Date', 'Réf', 'Fournisseur', 'Destination', 'Total HT', 'TVA', 'Total TTC', 'Statut', 'Actions'];
+    const headers = ['Date', 'N° Fact', 'Fournisseur', 'Destination', 'Total HT', 'TVA', 'Total TTC', 'Échéance', 'Actions'];
 
-    const accent = depotFilter === 'depot_b'
-        ? 'from-violet-600 via-purple-700 to-indigo-900'
-        : depotFilter === 'depot_a'
-            ? 'from-blue-600 via-brand-navy to-slate-900'
-            : 'from-brand-navy via-blue-800 to-indigo-900';
+    const handlePrint = () => {
+        const row = selectedId ? rows.find((r) => r.id === selectedId) : null;
+        if (row) {
+            openPrintable(row);
+            return;
+        }
+        if (rows.length === 1) {
+            openPrintable(rows[0]);
+            return;
+        }
+        window.alert('Sélectionnez une facture dans le tableau pour l\'imprimer.');
+    };
 
     return (
         <div className="space-y-4">
@@ -448,80 +458,94 @@ export default function FactureAchatsPage({ depotFilter = null, pageTitle = 'Fac
                 onSubmit={handleSubmit}
             />
 
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-white">{pageTitle}</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{pageSubtitle}</p>
-                </div>
-                <button type="button" onClick={openNouveau} className="btn-primary text-sm self-start sm:self-auto">
-                    <Plus className="w-4 h-4" /> Nouveau
+            <div className="flex flex-wrap items-center gap-2.5">
+                <button type="button" onClick={openNouveau} className="btn-primary text-sm">
+                    <Plus className="w-4 h-4" /> Ajouter
                 </button>
-            </div>
+                <button type="button" onClick={handlePrint} className="btn-secondary text-sm">
+                    <Printer className="w-4 h-4" /> Imprimer
+                </button>
+                <button type="button" onClick={() => navigate('/')} className="btn-danger text-sm">
+                    <XCircle className="w-4 h-4" /> Fermer
+                </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl">
-                <div className="rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 p-4 text-white shadow-lg">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">Nombre</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums">{summary.count}</p>
-                </div>
-                <div className="rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 p-4 text-white shadow-lg">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">Total HT</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums">{formatMontant(summary.total_ht)}</p>
-                </div>
-                <div className="rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 p-4 text-white shadow-lg">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">Total TTC</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums">{formatMontant(summary.total_ttc)}</p>
+                <div className="ml-auto flex flex-wrap items-center gap-2.5">
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/40 dark:to-slate-800/40 border-slate-200 dark:border-slate-700">
+                        <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            <Receipt className="w-4 h-4" />
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Nombre</p>
+                            <p className="text-base font-bold tabular-nums leading-tight text-slate-800 dark:text-white">{summary.count}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl border shadow-sm bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-200 dark:border-amber-800">
+                        <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                            <Wallet className="w-4 h-4" />
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total TTC</p>
+                            <p className="text-base font-bold tabular-nums leading-tight text-brand-navy dark:text-orange-300">
+                                {formatMontant(summary.total_ttc)}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div className="glass-card rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-700/60">
-                <div className={`px-5 py-3.5 bg-gradient-to-r ${accent} border-b border-white/10 flex items-center justify-between`}>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
-                        <Receipt className="w-4 h-4" /> Liste des factures
-                    </h3>
-                    <button type="button" onClick={load} disabled={loading} className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Actualiser">
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
+                <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-700 border-b border-white/10">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tableau des Factures d&apos;Achat</h3>
                 </div>
 
                 <ScrollAreaWithArrows variant="table" deps={[rows.length, loading]}>
-                    <table className="w-full text-sm min-w-[1000px]">
-                        <thead className="sticky top-0 z-10">                            <tr className="bg-gradient-to-r from-slate-100 via-slate-200/90 to-slate-100 dark:from-slate-800 dark:via-slate-700/80 dark:to-slate-800 border-b-2 border-slate-300 dark:border-slate-600">
+                    <table className="w-full text-sm min-w-[1100px]">
+                        <thead className="sticky top-0 z-10">
+                            <tr className="bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
                                 {headers.map((h) => (
-                                    <th key={h} className="px-3 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300 whitespace-nowrap text-center">{h}</th>
+                                    <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap text-center">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
-                                [...Array(4)].map((_, i) => (
+                                [...Array(3)].map((_, i) => (
                                     <tr key={i}>{[...Array(9)].map((__, j) => (
-                                        <td key={j} className="px-3 py-3 text-center"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[80px]" /></td>
+                                        <td key={j} className="px-4 py-3 text-center"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mx-auto max-w-[80px]" /></td>
                                     ))}</tr>
                                 ))
                             ) : rows.length ? (
                                 rows.map((row) => (
-                                    <tr key={row.id} className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition-colors">
-                                        <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.invoice_date}</td>
-                                        <td className="px-3 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-orange-400">{row.reference}</td>
-                                        <td className="px-3 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur}</td>
-                                        <td className="px-3 py-2.5 text-center"><DepotBadge label={row.depot_label} /></td>
-                                        <td className="px-3 py-2.5 text-center tabular-nums font-semibold">{formatMontant(row.total_ht)}</td>
-                                        <td className="px-3 py-2.5 text-center tabular-nums">{formatMontant(row.tva)}</td>
-                                        <td className="px-3 py-2.5 text-center tabular-nums font-semibold text-brand-navy dark:text-orange-400">{formatMontant(row.total_ttc)}</td>
-                                        <td className="px-3 py-2.5 text-center text-xs capitalize">{row.status?.replace('_', ' ')}</td>
-                                        <td className="px-3 py-2.5">
-                                            <div className="flex items-center justify-center gap-0.5">
+                                    <tr
+                                        key={row.id}
+                                        onClick={() => setSelectedId(row.id)}
+                                        className={`cursor-pointer hover:bg-orange-50/40 dark:hover:bg-slate-800/40 transition-colors ${selectedId === row.id ? 'bg-amber-50/70 dark:bg-amber-900/20' : ''}`}
+                                    >
+                                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.invoice_date}</td>
+                                        <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-orange-400">{row.reference}</td>
+                                        <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.fournisseur || '—'}</td>
+                                        <td className="px-4 py-2.5 text-center"><DepotBadge label={row.depot_label} /></td>
+                                        <td className="px-4 py-2.5 text-center tabular-nums font-semibold">{formatMontant(row.total_ht)}</td>
+                                        <td className="px-4 py-2.5 text-center tabular-nums">{formatMontant(row.tva)}</td>
+                                        <td className="px-4 py-2.5 text-center tabular-nums font-semibold text-brand-navy dark:text-orange-400">{formatMontant(row.total_ttc)}</td>
+                                        <td className="px-4 py-2.5 text-center">
+                                            <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                                                {row.due_date || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-2.5">
+                                            <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                                                 <ActionBtn title="Voir" icon={Eye} color="blue" onClick={() => setViewRow(row)} />
                                                 <ActionBtn title="Modifier" icon={Pencil} color="amber" onClick={() => openEdit(row)} />
+                                                <ActionBtn title="Supprimer" icon={Trash2} color="red" onClick={() => handleDelete(row)} />
                                                 <ActionBtn title="Imprimer" icon={Printer} color="slate" onClick={() => openPrintable(row)} />
                                                 <ActionBtn title="PDF" icon={FileText} color="orange" onClick={() => openPrintable(row)} />
-                                                <ActionBtn title="Supprimer" icon={Trash2} color="red" onClick={() => handleDelete(row)} />
                                             </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan={9} className="px-4 py-12 text-center text-slate-400">Aucune facture enregistrée</td></tr>
+                                <tr><td colSpan={9} className="px-4 py-12 text-center text-slate-400">Aucune facture d&apos;achat — cliquez sur Ajouter</td></tr>
                             )}
                         </tbody>
                     </table>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttendanceApiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChargeApiController;
 use App\Http\Controllers\Api\ChantierApiController;
@@ -93,6 +94,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('supplier-payments/{supplier_payment}', [SupplierPaymentApiController::class, 'destroy']);
 
     Route::apiResource('employees', EmployeeApiController::class);
+    Route::post('employees/{employee}/suspend', [EmployeeApiController::class, 'suspend']);
+    Route::get('attendances', [AttendanceApiController::class, 'index']);
+    Route::post('attendances/month', [AttendanceApiController::class, 'saveMonth']);
     Route::apiResource('expenses', ExpenseApiController::class);
     Route::get('charges/meta', [ChargeApiController::class, 'meta']);
     Route::apiResource('charges', ChargeApiController::class);

@@ -15,7 +15,6 @@ import StockDepotProduitFiniPage from './pages/StockDepotProduitFiniPage';
 import BonProductionPage from './pages/BonProductionPage';
 import BonSortiePage from './pages/BonSortiePage';
 import StockMouvementPage from './pages/StockMouvementPage';
-import GenericListPage from './pages/GenericListPage';
 import ModulePage from './pages/ModulePage';
 import FicheFournisseurPage from './pages/FicheFournisseurPage';
 import FicheClientPage from './pages/FicheClientPage';
@@ -30,7 +29,8 @@ import FactureVentesPage from './pages/FactureVentesPage';
 import SupplierBalancePage from './pages/SupplierBalancePage';
 import UtilisateursPage from './pages/UtilisateursPage';
 import RapportsPage from './pages/RapportsPage';
-import EtatPaiementPage from './pages/clients/EtatPaiementPage';
+import FichePersonnelPage from './pages/FichePersonnelPage';
+import PersonnelEtatPaiementPage from './pages/PersonnelEtatPaiementPage';
 import ReleveComptePage from './pages/ReleveComptePage';
 import FacturationBalancePage from './pages/facturation/FacturationBalancePage';
 
@@ -44,14 +44,6 @@ function ProtectedRoute({ children }) {
     if (!user) return <Navigate to="/login" replace />;
     return children;
 }
-
-const employeeCols = [
-    { key: 'matricule', label: 'Matricule' },
-    { key: 'name', label: 'Nom', render: (r) => `${r.first_name} ${r.last_name}` },
-    { key: 'position', label: 'Poste' },
-    { key: 'monthly_salary', label: 'Salaire', render: (r) => `${r.monthly_salary}` },
-    { key: 'status', label: 'Statut' },
-];
 
 function AppRoutes() {
     return (
@@ -109,8 +101,10 @@ function AppRoutes() {
                 <Route path="chantiers/suivi-depenses" element={<ModulePage />} />
 
                 {/* Personnel */}
-                <Route path="personnel/fiches" element={<GenericListPage title="Fiche Personnel" subtitle="Gestion des employés" endpoint="/employees" columns={employeeCols} />} />
-                <Route path="personnel/etat-paiement" element={<EtatPaiementPage />} />
+                <Route path="personnel/fiches" element={<FichePersonnelPage />} />
+                <Route path="personnel/emploi-operationnel" element={<PersonnelEtatPaiementPage />} />
+                <Route path="personnel/paiement" element={<ModulePage />} />
+                <Route path="personnel/etat-paiement" element={<Navigate to="/personnel/emploi-operationnel" replace />} />
 
                 {/* Suivi Monétaire */}
                 <Route path="monetaire/transactions" element={<TransactionsPage />} />

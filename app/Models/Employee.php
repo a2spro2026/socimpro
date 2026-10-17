@@ -10,7 +10,7 @@ class Employee extends Model
 {
     protected $fillable = [
         'user_id', 'first_name', 'last_name', 'matricule', 'cin', 'phone', 'email', 'address', 'position',
-        'daily_rate', 'monthly_salary', 'hire_date', 'status', 'notes', 'photo',
+        'daily_rate', 'monthly_salary', 'hire_date', 'contract_type', 'remuneration_type', 'status', 'notes', 'photo',
     ];
 
     protected function casts(): array
