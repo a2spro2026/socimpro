@@ -610,6 +610,14 @@ export default function BonVentesPage() {
                 return;
             }
             const qty = parseFloat(String(l.quantity).replace(',', '.')) || 0;
+            if (!(Number(stock.quantity) > 0)) {
+                setError(`Stock à 0 : vente impossible pour « ${l.article_ref} »`);
+                return;
+            }
+            if (!(qty > 0)) {
+                setError(`Stock à 0 : vente impossible pour « ${l.article_ref} »`);
+                return;
+            }
             if (qty > Number(stock.quantity) + 0.0001) {
                 setError(`Quantité de « ${l.article_ref} » supérieure au stock (${stock.quantity})`);
                 return;

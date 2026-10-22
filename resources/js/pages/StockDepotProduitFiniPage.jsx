@@ -62,7 +62,7 @@ export default function StockDepotProduitFiniPage() {
                                     <tr key={`${row.ref}-${row.designation}-${i}`} className="hover:bg-violet-50/40 dark:hover:bg-slate-800/40 transition-colors">
                                         <td className="px-4 py-2.5 text-center font-mono text-xs font-semibold text-brand-navy dark:text-violet-400">{row.ref || '—'}</td>
                                         <td className="px-4 py-2.5 text-center font-medium text-slate-800 dark:text-white">{row.designation || '—'}</td>
-                                        <td className="px-4 py-2.5 text-center font-semibold tabular-nums text-violet-700 dark:text-violet-300">
+                                        <td className={`px-4 py-2.5 text-center font-semibold tabular-nums ${Number(row.quantity) <= 0 ? 'text-red-600' : 'text-violet-700 dark:text-violet-300'}`}>
                                             {Number(row.quantity).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">{row.unit || '—'}</td>

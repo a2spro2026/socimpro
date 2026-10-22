@@ -27,11 +27,11 @@ class StockApiController extends Controller
     }
 
     /**
-     * Depot Produit Fini = produits importés des bons de sortie.
+     * Depot Produit Fini = bons de sortie, une ligne par référence, stock après ventes.
      */
     public function depotProduitFini()
     {
-        return $this->stockResponse(self::aggregatedFromSortieOrders());
+        return $this->stockResponse(self::aggregatedFinishedNet());
     }
 
     /**
@@ -170,12 +170,56 @@ class StockApiController extends Controller
             ->map(function ($row) use ($soldByRef) {
                 $key = mb_strtolower(trim((string) $row['ref']));
                 $sold = (float) ($soldByRef[$key] ?? 0);
+                $row['quantity_sold'] = round($sold, 3);
                 $row['quantity'] = round(max(0, (float) $row['quantity'] - $sold), 3);
 
                 return $row;
             })
             ->filter(fn ($row) => (float) $row['quantity'] > 0)
             ->values()
+            ->sortBy('ref', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+    }
+
+    /**
+     * Produit fini regroupé par référence (toutes les variantes de désignation).
+     */
+    public static function finishedGrossByRef(): Collection
+    {
+        return self::aggregatedFromSortieOrders()
+            ->filter(fn ($r) => trim((string) ($r['ref'] ?? '')) !== '' && $r['ref'] !== '—')
+            ->groupBy(fn ($r) => mb_strtolower(trim((string) $r['ref'])))
+            ->map(function ($group) {
+                $best = $group->sortByDesc(fn ($r) => (float) $r['quantity'])->first();
+
+                return [
+                    'ref' => $best['ref'],
+                    'designation' => $best['designation'],
+                    'unit' => $best['unit'],
+                    'quantity' => round($group->sum('quantity'), 3),
+                ];
+            })
+            ->values();
+    }
+
+    /**
+     * Stock fini réel = sorties de la référence − ventes de la référence.
+     * Une vente à 0 n'est plus proposée au bon de vente.
+     */
+    public static function aggregatedFinishedNet(?int $exceptSalesOrderId = null): Collection
+    {
+        $sold = self::soldQuantitiesByRef($exceptSalesOrderId);
+
+        return self::finishedGrossByRef()
+            ->map(function ($row) use ($sold) {
+                $key = mb_strtolower(trim((string) $row['ref']));
+                $soldQty = round((float) ($sold[$key] ?? 0), 3);
+                $row['quantity_produced'] = $row['quantity'];
+                $row['quantity_sold'] = $soldQty;
+                $row['quantity'] = round((float) $row['quantity'] - $soldQty, 3);
+
+                return $row;
+            })
             ->sortBy('ref', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
     }
@@ -396,27 +440,19 @@ class StockApiController extends Controller
 
     private function buildMouvementRows(int $year, string $typeDepot, string $flow, ?int $monthFilter): Collection
     {
-        $products = $typeDepot === 'divers'
-            ? self::aggregatedFromPurchaseOrders('divers')
-            : self::aggregatedFromSortieOrders();
+        if ($typeDepot === 'fini') {
+            return $this->buildFiniMouvementRows($year, $flow, $monthFilter);
+        }
 
-        $entriesByKeyMonth = $typeDepot === 'divers'
-            ? $this->monthlyPurchaseQty($year, 'divers')
-            : $this->monthlySortieQty($year);
-
-        $salesByKeyMonth = $this->monthlySalesQty($year);
+        $products = self::aggregatedFromPurchaseOrders('divers');
+        $entriesByKeyMonth = $this->monthlyPurchaseQty($year, 'divers');
+        $salesByKeyMonth = $this->monthlySalesQty($year, excludeFinishedRefs: true);
 
         return $products->map(function ($p) use ($year, $typeDepot, $flow, $monthFilter, $entriesByKeyMonth, $salesByKeyMonth) {
             $key = $this->mouvementKey($p['ref'], $p['designation']);
 
-            $stockInitial = 0.0;
-            if ($typeDepot === 'divers') {
-                $stockInitial = $this->purchaseQtyBeforeYear($year, 'divers', $p['ref'], $p['designation'])
-                    - $this->salesQtyBeforeYear($year, $p['ref'], $p['designation']);
-            } else {
-                $stockInitial = $this->sortieQtyBeforeYear($year, $p['ref'], $p['designation'])
-                    - $this->salesQtyBeforeYear($year, $p['ref'], $p['designation']);
-            }
+            $stockInitial = $this->purchaseQtyBeforeYear($year, 'divers', $p['ref'], $p['designation'])
+                - $this->salesQtyBeforeYear($year, $p['ref'], $p['designation'], excludeFinishedRefs: true);
 
             $months = [];
             $yearEntries = 0.0;
@@ -457,6 +493,83 @@ class StockApiController extends Controller
                 'stock_actuel' => $stockActuel,
             ];
         })->filter()->sortBy('ref', SORT_NATURAL | SORT_FLAG_CASE)->values();
+    }
+
+    /**
+     * Mouvement produit fini : une ligne par référence, ventes imputées même si la désignation diffère.
+     */
+    private function buildFiniMouvementRows(int $year, string $flow, ?int $monthFilter): Collection
+    {
+        $products = self::finishedGrossByRef();
+        $netByRef = self::aggregatedFinishedNet()->keyBy(fn ($r) => mb_strtolower(trim((string) $r['ref'])));
+        $entriesByRefMonth = $this->monthlyQtyByRef($this->monthlySortieQty($year));
+        $salesByRefMonth = $this->monthlyQtyByRef($this->monthlySalesQty($year));
+
+        return $products->map(function ($p) use ($year, $flow, $monthFilter, $entriesByRefMonth, $salesByRefMonth, $netByRef) {
+            $key = mb_strtolower(trim((string) $p['ref']));
+            $stockInitial = $this->sortieQtyBeforeYearByRef($year, $p['ref'])
+                - $this->salesQtyBeforeYearByRef($year, $p['ref']);
+
+            $months = [];
+            $yearEntries = 0.0;
+            $yearSales = 0.0;
+
+            for ($m = 1; $m <= 12; $m++) {
+                $achat = (float) ($entriesByRefMonth[$key][$m] ?? 0);
+                $vente = (float) ($salesByRefMonth[$key][$m] ?? 0);
+                $yearEntries += $achat;
+                $yearSales += $vente;
+
+                if ($flow === 'achats') {
+                    $months[$m] = ['achat' => round($achat, 3), 'vente' => null];
+                } elseif ($flow === 'ventes') {
+                    $months[$m] = ['achat' => null, 'vente' => round($vente, 3)];
+                } else {
+                    $months[$m] = ['achat' => round($achat, 3), 'vente' => round($vente, 3)];
+                }
+            }
+
+            if ($monthFilter !== null) {
+                $hasActivity = (($months[$monthFilter]['achat'] ?? 0) > 0) || (($months[$monthFilter]['vente'] ?? 0) > 0);
+                if (! $hasActivity && abs($stockInitial) < 0.0001) {
+                    return null;
+                }
+            }
+
+            return [
+                'ref' => $p['ref'],
+                'designation' => $p['designation'],
+                'unit' => $p['unit'],
+                'type_depot' => 'fini',
+                'type_depot_label' => 'Fini',
+                'stock_initial' => round($stockInitial, 3),
+                'months' => $months,
+                'stock_actuel' => round((float) ($netByRef[$key]['quantity'] ?? ($stockInitial + $yearEntries - $yearSales)), 3),
+            ];
+        })->filter()->sortBy('ref', SORT_NATURAL | SORT_FLAG_CASE)->values();
+    }
+
+    private function finishedRefSet(): array
+    {
+        $set = [];
+        foreach (self::finishedGrossByRef() as $row) {
+            $set[mb_strtolower(trim((string) $row['ref']))] = true;
+        }
+
+        return $set;
+    }
+
+    private function monthlyQtyByRef(array $byDesignation): array
+    {
+        $map = [];
+        foreach ($byDesignation as $key => $months) {
+            $ref = explode('|', (string) $key, 2)[0];
+            foreach ($months as $month => $qty) {
+                $map[$ref][$month] = ($map[$ref][$month] ?? 0) + (float) $qty;
+            }
+        }
+
+        return $map;
     }
 
     private function mouvementKey(?string $ref, ?string $designation): string
@@ -532,12 +645,14 @@ class StockApiController extends Controller
         return $map;
     }
 
-    private function monthlySalesQty(int $year): array
+    private function monthlySalesQty(int $year, bool $excludeFinishedRefs = false): array
     {
         $map = [];
         if (! Schema::hasTable('sales_orders') || ! Schema::hasTable('sales_order_items')) {
             return $map;
         }
+
+        $finiRefs = $excludeFinishedRefs ? $this->finishedRefSet() : [];
 
         $rows = DB::table('sales_order_items as soi')
             ->join('sales_orders as so', 'so.id', '=', 'soi.sales_order_id')
@@ -553,6 +668,10 @@ class StockApiController extends Controller
             ->get();
 
         foreach ($rows as $r) {
+            $refKey = mb_strtolower(trim((string) ($r->ref === '—' ? '' : $r->ref)));
+            if ($excludeFinishedRefs && isset($finiRefs[$refKey])) {
+                continue;
+            }
             $key = $this->mouvementKey($r->ref, $r->designation);
             $map[$key][(int) $r->mois] = (float) $r->qty;
         }
@@ -600,7 +719,40 @@ class StockApiController extends Controller
             ->sum('soi.quantity'), 3);
     }
 
-    private function salesQtyBeforeYear(int $year, string $ref, string $designation): float
+    private function salesQtyBeforeYear(int $year, string $ref, string $designation, bool $excludeFinishedRefs = false): float
+    {
+        if (! Schema::hasTable('sales_orders') || ! Schema::hasTable('sales_order_items')) {
+            return 0;
+        }
+
+        $refKey = mb_strtolower(trim($ref === '—' ? '' : $ref));
+        if ($excludeFinishedRefs && isset($this->finishedRefSet()[$refKey])) {
+            return 0;
+        }
+
+        return round((float) DB::table('sales_order_items as soi')
+            ->join('sales_orders as so', 'so.id', '=', 'soi.sales_order_id')
+            ->where('so.status', '!=', 'annule')
+            ->whereYear('so.order_date', '<', $year)
+            ->whereRaw('LOWER(TRIM(COALESCE(soi.article_ref, ""))) = ?', [$refKey])
+            ->whereRaw('LOWER(TRIM(COALESCE(soi.description, ""))) = ?', [mb_strtolower(trim($designation === '—' ? '' : $designation))])
+            ->sum('soi.quantity'), 3);
+    }
+
+    private function sortieQtyBeforeYearByRef(int $year, string $ref): float
+    {
+        if (! Schema::hasTable('sortie_orders') || ! Schema::hasTable('sortie_order_items')) {
+            return 0;
+        }
+
+        return round((float) DB::table('sortie_order_items as soi')
+            ->join('sortie_orders as so', 'so.id', '=', 'soi.sortie_order_id')
+            ->whereYear('so.sortie_date', '<', $year)
+            ->whereRaw('LOWER(TRIM(COALESCE(soi.article_ref, ""))) = ?', [mb_strtolower(trim($ref))])
+            ->sum('soi.quantity'), 3);
+    }
+
+    private function salesQtyBeforeYearByRef(int $year, string $ref): float
     {
         if (! Schema::hasTable('sales_orders') || ! Schema::hasTable('sales_order_items')) {
             return 0;
@@ -610,8 +762,7 @@ class StockApiController extends Controller
             ->join('sales_orders as so', 'so.id', '=', 'soi.sales_order_id')
             ->where('so.status', '!=', 'annule')
             ->whereYear('so.order_date', '<', $year)
-            ->whereRaw('LOWER(TRIM(COALESCE(soi.article_ref, ""))) = ?', [mb_strtolower(trim($ref === '—' ? '' : $ref))])
-            ->whereRaw('LOWER(TRIM(COALESCE(soi.description, ""))) = ?', [mb_strtolower(trim($designation === '—' ? '' : $designation))])
+            ->whereRaw('LOWER(TRIM(COALESCE(soi.article_ref, ""))) = ?', [mb_strtolower(trim($ref))])
             ->sum('soi.quantity'), 3);
     }
 }

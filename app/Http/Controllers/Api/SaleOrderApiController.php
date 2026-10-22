@@ -179,9 +179,9 @@ class SaleOrderApiController extends Controller
                     return mb_strtolower(trim((string) $row['ref'])) === mb_strtolower(trim((string) ($item['article_ref'] ?? '')));
                 });
 
-                if (! $match) {
+                if (! $match || (float) $match['quantity'] <= 0) {
                     throw ValidationException::withMessages([
-                        "items.{$index}.article_ref" => 'Produit introuvable en stock (Depot Divers ou Depot Produit Fini).',
+                        "items.{$index}.article_ref" => 'Stock à 0 : vente impossible pour '.($item['article_ref'] ?? 'ce produit').'.',
                     ]);
                 }
 
@@ -213,16 +213,30 @@ class SaleOrderApiController extends Controller
 
         $qty = (float) ($validated['quantity'] ?? 1);
         $price = (float) ($validated['unit_price'] ?? 0);
+        $ref = trim((string) ($validated['article_ref'] ?? ''));
+        $match = $stock->first(function ($row) use ($ref) {
+            return mb_strtolower(trim((string) $row['ref'])) === mb_strtolower($ref);
+        });
+        if (! $match || (float) $match['quantity'] <= 0) {
+            throw ValidationException::withMessages([
+                'article_ref' => 'Stock à 0 : vente impossible pour '.($ref !== '' ? $ref : 'ce produit').'.',
+            ]);
+        }
+        if ($qty > (float) $match['quantity'] + 0.0001) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Quantité supérieure au stock disponible ('.$match['quantity'].').',
+            ]);
+        }
 
         $fallback = [[
             'product_id' => null,
-            'article_ref' => $validated['article_ref'] ?? null,
+            'article_ref' => $match['ref'],
             'code_barre' => null,
-            'description' => $validated['designation'] ?? 'Bon de vente',
+            'description' => $match['designation'],
             'categorie' => null,
             'famille' => null,
             'marque' => null,
-            'unit' => $validated['unit'] ?? null,
+            'unit' => $match['unit'] === '—' ? null : $match['unit'],
             'quantity' => $qty,
             'unit_price' => $price,
             'total' => round($qty * $price, 2),
